@@ -14,7 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  useFormField, // Import useFormField
+  useFormField,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -88,7 +88,6 @@ export default function PostRoutePage() {
         variant: "default",
       });
       form.reset();
-      // Also reset popover states if needed, though they should close on blur/selection
       setIsStartPointPopoverOpen(false);
       setStartPointSuggestions([]);
       setIsDestinationPopoverOpen(false);
@@ -124,7 +123,7 @@ export default function PostRoutePage() {
                 control={form.control}
                 name="startPoint"
                 render={({ field }) => {
-                  const { formItemId } = useFormField(); // Get ID for the input
+                  const { formItemId } = useFormField();
                   return (
                     <FormItem>
                       <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Start Point</FormLabel>
@@ -132,16 +131,13 @@ export default function PostRoutePage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Input
-                              id={formItemId} // Explicitly set ID
+                              id={formItemId}
                               placeholder="e.g., KR Puram"
-                              name={field.name}
-                              ref={field.ref}
-                              onBlur={field.onBlur}
-                              value={field.value}
+                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => {
                                 const currentValue = e.target.value;
-                                field.onChange(currentValue); 
-
+                                field.onChange(currentValue);
                                 if (currentValue.length > 0) {
                                   const filtered = allKnownLocations.filter(loc =>
                                     loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
@@ -166,8 +162,8 @@ export default function PostRoutePage() {
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
                                   onMouseDown={(e) => { 
                                     e.preventDefault();
-                                    field.onChange(suggestion);
                                     form.setValue("startPoint", suggestion, { shouldValidate: true });
+                                    field.onChange(suggestion);
                                     setIsStartPointPopoverOpen(false);
                                     setStartPointSuggestions([]);
                                   }}
@@ -189,7 +185,7 @@ export default function PostRoutePage() {
                 control={form.control}
                 name="destination"
                 render={({ field }) => {
-                  const { formItemId } = useFormField(); // Get ID for the input
+                  const { formItemId } = useFormField();
                   return (
                     <FormItem>
                       <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Destination</FormLabel>
@@ -197,16 +193,13 @@ export default function PostRoutePage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Input
-                              id={formItemId} // Explicitly set ID
+                              id={formItemId}
                               placeholder="e.g., Google Office"
-                              name={field.name}
-                              ref={field.ref}
-                              onBlur={field.onBlur}
-                              value={field.value}
+                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => {
                                 const currentValue = e.target.value;
                                 field.onChange(currentValue);
-
                                 if (currentValue.length > 0) {
                                   const filtered = allKnownLocations.filter(loc =>
                                     loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
@@ -231,8 +224,8 @@ export default function PostRoutePage() {
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
                                   onMouseDown={(e) => { 
                                     e.preventDefault();
-                                    field.onChange(suggestion);
                                     form.setValue("destination", suggestion, { shouldValidate: true });
+                                    field.onChange(suggestion);
                                     setIsDestinationPopoverOpen(false);
                                     setDestinationSuggestions([]);
                                   }}
