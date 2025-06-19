@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { User, Badge as BadgeType, PaymentRecord } from "@/types";
 import BadgeDisplay from "@/components/features/profile/badge-display";
-import { Edit3, ShieldCheck, UserCircle, CreditCard, Gift, LogOut } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Edit3, ShieldCheck, UserCircle, CreditCard, Gift, LogOut, Save, XCircle } from "lucide-react";
 
 // Mock data
-const mockUser: User = {
+const mockUserInitial: User = {
   id: "user123",
   name: "Alex Rider",
   avatarUrl: "https://placehold.co/100x100.png",
@@ -27,22 +30,64 @@ const mockBadges: BadgeType[] = [
 ];
 
 const mockPaymentHistory: PaymentRecord[] = [
-  { id: "p1", rideId: "rideABC", amount: 450.50, date: new Date(2023, 10, 15), status: 'completed', payer: mockUser, payee: {id: "r1", name: "Jane D.", role: "rider"} },
-  { id: "p2", rideId: "rideXYZ", amount: 250.00, date: new Date(2023, 10, 22), status: 'completed', payer: {id: "b2", name: "John S.", role: "buddy"}, payee: mockUser },
-  { id: "p3", rideId: "rideDEF", amount: 600.75, date: new Date(2023, 11, 1), status: 'pending', payer: mockUser, payee: {id: "r3", name: "Mike T.", role: "rider"} },
+  { id: "p1", rideId: "rideABC", amount: 450.50, date: new Date(2023, 10, 15), status: 'completed', payer: mockUserInitial, payee: {id: "r1", name: "Jane D.", role: "rider"} },
+  { id: "p2", rideId: "rideXYZ", amount: 250.00, date: new Date(2023, 10, 22), status: 'completed', payer: {id: "b2", name: "John S.", role: "buddy"}, payee: mockUserInitial },
+  { id: "p3", rideId: "rideDEF", amount: 600.75, date: new Date(2023, 11, 1), status: 'pending', payer: mockUserInitial, payee: {id: "r3", name: "Mike T.", role: "rider"} },
 ];
 
 export default function ProfilePage() {
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [badges, setBadges] = useState<BadgeType[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([]);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableName, setEditableName] = useState("");
+  const [editableAvatarUrl, setEditableAvatarUrl] = useState("");
 
   useEffect(() => {
     // Simulate fetching data
-    setUser(mockUser);
+    setUser(mockUserInitial);
     setBadges(mockBadges);
     setPaymentHistory(mockPaymentHistory);
+    if (mockUserInitial) {
+        setEditableName(mockUserInitial.name);
+        setEditableAvatarUrl(mockUserInitial.avatarUrl || "");
+    }
   }, []);
+
+  const handleEdit = () => {
+    if (user) {
+      setEditableName(user.name);
+      setEditableAvatarUrl(user.avatarUrl || "");
+    }
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    if (user) {
+      setEditableName(user.name);
+      setEditableAvatarUrl(user.avatarUrl || "");
+    }
+    setIsEditing(false);
+  };
+
+  const handleSave = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (user) {
+      setUser({
+        ...user,
+        name: editableName,
+        avatarUrl: editableAvatarUrl,
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your changes have been saved (for this session).",
+        variant: "default",
+      });
+    }
+    setIsEditing(false);
+  };
 
   if (!user) {
     return (
@@ -56,19 +101,57 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <Card className="mb-8 shadow-xl rounded-lg">
-        <CardHeader className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg">
-          <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
-            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="profile picture" />
-            <AvatarFallback className="text-3xl font-headline">{user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="text-center sm:text-left">
-            <CardTitle className="text-4xl font-headline mb-1">{user.name}</CardTitle>
-            <CardDescription className="font-body text-lg text-muted-foreground">
-              {user.role === 'rider' ? "Trusted Rider" : "Valued Buddy"} | Member since Oct 2023
-            </CardDescription>
-            <div className="mt-3 flex gap-2 justify-center sm:justify-start">
-                <Button variant="outline" size="sm" className="font-headline"><Edit3 className="mr-2 h-4 w-4"/>Edit Profile</Button>
-                <Button variant="ghost" size="sm" className="font-headline text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
+        <CardHeader className="p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
+              <AvatarImage src={isEditing ? editableAvatarUrl : user.avatarUrl} alt={user.name} data-ai-hint="profile picture" />
+              <AvatarFallback className="text-3xl font-headline">{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="text-center sm:text-left flex-grow">
+              {!isEditing ? (
+                <>
+                  <CardTitle className="text-4xl font-headline mb-1">{user.name}</CardTitle>
+                  <CardDescription className="font-body text-lg text-muted-foreground">
+                    {user.role === 'rider' ? "Trusted Rider" : "Valued Buddy"} | Member since Oct 2023
+                  </CardDescription>
+                  <div className="mt-3 flex gap-2 justify-center sm:justify-start">
+                      <Button variant="outline" size="sm" onClick={handleEdit} className="font-headline"><Edit3 className="mr-2 h-4 w-4"/>Edit Profile</Button>
+                      <Button variant="ghost" size="sm" className="font-headline text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
+                  </div>
+                </>
+              ) : (
+                <form onSubmit={handleSave} className="space-y-4">
+                  <div>
+                    <Label htmlFor="profileName" className="font-headline text-sm text-muted-foreground">Name</Label>
+                    <Input 
+                      id="profileName" 
+                      type="text" 
+                      value={editableName} 
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEditableName(e.target.value)} 
+                      className="font-body text-lg" 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="profileAvatarUrl" className="font-headline text-sm text-muted-foreground">Avatar URL</Label>
+                    <Input 
+                      id="profileAvatarUrl" 
+                      type="url" 
+                      value={editableAvatarUrl} 
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEditableAvatarUrl(e.target.value)} 
+                      className="font-body text-base"
+                      placeholder="https://example.com/image.png"
+                    />
+                  </div>
+                   <CardDescription className="font-body text-sm text-muted-foreground">
+                    {user.role === 'rider' ? "Trusted Rider" : "Valued Buddy"} | Member since Oct 2023
+                  </CardDescription>
+                  <div className="flex gap-2 justify-center sm:justify-start">
+                    <Button type="submit" size="sm" className="font-headline bg-primary hover:bg-primary/90"><Save className="mr-2 h-4 w-4"/>Save Changes</Button>
+                    <Button variant="outline" size="sm" onClick={handleCancel} className="font-headline"><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                    <Button variant="ghost" size="sm" className="font-headline text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="mr-2 h-4 w-4"/>Logout</Button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -156,3 +239,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
