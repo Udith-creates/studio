@@ -1,3 +1,4 @@
+
 // src/components/ui/sidebar.tsx
 "use client"
 
@@ -324,8 +325,15 @@ const SidebarInset = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-all duration-200 ease-linear",
+        // Styles for 'inset' variant
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        // Styles for default 'sidebar' variant on desktop (md and up) for left side
+        "md:peer-data-[variant=sidebar]:peer-data-[side=left]:peer-data-[state=expanded]:ml-[var(--sidebar-width)]",
+        "md:peer-data-[variant=sidebar]:peer-data-[side=left]:peer-data-[state=collapsed]:ml-[var(--sidebar-width-icon)]",
+        // Styles for default 'sidebar' variant on desktop (md and up) for right side (if ever used)
+        // "md:peer-data-[variant=sidebar]:peer-data-[side=right]:peer-data-[state=expanded]:mr-[var(--sidebar-width)]",
+        // "md:peer-data-[variant=sidebar]:peer-data-[side=right]:peer-data-[state=collapsed]:mr-[var(--sidebar-width-icon)]",
         className
       )}
       {...props}
@@ -763,3 +771,4 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
