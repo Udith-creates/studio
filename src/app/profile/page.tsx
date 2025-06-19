@@ -56,9 +56,9 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <Card className="mb-8 shadow-xl rounded-lg">
-        <CardHeader className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gradient-to-r from-primary/10 to-accent/10">
+        <CardHeader className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg">
           <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
+            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="profile picture" />
             <AvatarFallback className="text-3xl font-headline">{user.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="text-center sm:text-left">
@@ -156,4 +156,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
