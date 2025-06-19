@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription as ShadCardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
@@ -128,9 +129,9 @@ export default function PostRoutePage() {
             <PlusCircle className="h-8 w-8 text-primary" />
             <CardTitle className="text-3xl font-headline">Post Your Daily Route</CardTitle>
           </div>
-          <CardDescription className="font-body text-base">
+          <ShadCardDescription className="font-body text-base">
             Offer a ride to fellow commuters and help reduce traffic!
-          </CardDescription>
+          </ShadCardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -356,5 +357,3 @@ export default function PostRoutePage() {
     </div>
   );
 }
-
-    
