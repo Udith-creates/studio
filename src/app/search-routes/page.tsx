@@ -38,7 +38,7 @@ const daysOfWeek = [
 const searchRouteSchema = z.object({
   destination: z.string().min(2, "Destination must be at least 2 characters."),
   timing: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:MM).").optional().or(z.literal("")),
-  days: z.array(z.string()).optional(), // Expects array of short day codes e.g. ["mon", "tue"]
+  days: z.array(z.string()).optional(), 
 });
 
 type SearchRouteFormValues = z.infer<typeof searchRouteSchema>;
@@ -65,15 +65,14 @@ export default function SearchRoutesPage() {
     const results = allCurrentRoutes.filter(route => {
       const destinationMatch = route.destination.toLowerCase().includes(data.destination.toLowerCase());
       const timingMatch = !data.timing || route.timing === data.timing;
-      // Assumes route.days are short lowercase codes (e.g., "mon")
       const daysMatch = !data.days || data.days.length === 0 || data.days.every(day => route.days.includes(day));
-      const statusMatch = route.status === 'available'; // Only show available routes for new bookings
+      const statusMatch = route.status === 'available';
       return destinationMatch && timingMatch && daysMatch && statusMatch;
     });
 
     setSearchResults(results);
     setSearched(true);
-    if (results.length === 0) {
+    if (results.length === 0 && data.destination) { // Only toast if a search was actually performed
       toast({
         title: "No Available Routes Found",
         description: "Try adjusting your search criteria or check back later.",
@@ -108,12 +107,11 @@ export default function SearchRoutesPage() {
           description: "The rider has been notified. Check 'My Rides' for updates.",
           variant: "default",
         });
-        // Update the search results to reflect the change (e.g., status, seats)
-        // If the route became full after this request, it should no longer be shown as available.
-        setSearchResults(prevResults => 
-          prevResults.map(r => r.id === routeId ? updatedRoute : r)
-                     .filter(r => r.status === 'available' || (r.id === routeId && updatedRoute.status === 'requested')) // Keep showing available, or the one just requested
-        );
+        // Re-filter search results to only show currently available routes
+        // This will make the just-booked route disappear from the list if it's no longer 'available'
+        const currentSearchCriteria = form.getValues();
+        onSubmit(currentSearchCriteria);
+
     } else {
         toast({
             title: "Booking Error",
