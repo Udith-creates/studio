@@ -51,7 +51,7 @@ export default function PostRoutePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
-  
+
   const [startPointSuggestions, setStartPointSuggestions] = useState<string[]>([]);
   const [isStartPointPopoverOpen, setIsStartPointPopoverOpen] = useState(false);
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
@@ -74,29 +74,29 @@ export default function PostRoutePage() {
   }, []);
 
   const handleLocationInputChange = (
-    value: string,
-    fieldChange: (value: string) => void,
-    setSuggestions: (suggestions: string[]) => void,
-    setPopoverOpen: (isOpen: boolean) => void
+    currentValue: string,
+    fieldOnChange: (value: string) => void,
+    setSuggestionsState: React.Dispatch<React.SetStateAction<string[]>>,
+    setPopoverOpenState: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
-    fieldChange(value);
-    if (value.length > 0) {
+    fieldOnChange(currentValue); // Update react-hook-form state
+    if (currentValue.length > 0) {
       const filtered = allKnownLocations.filter(loc =>
-        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+        loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
       );
-      setSuggestions(filtered);
-      setPopoverOpen(filtered.length > 0);
+      setSuggestionsState(filtered);
+      setPopoverOpenState(filtered.length > 0);
     } else {
-      setSuggestions([]);
-      setPopoverOpen(false);
+      setSuggestionsState([]);
+      setPopoverOpenState(false);
     }
   };
+
 
   async function onSubmit(data: PostRouteFormValues) {
     setIsLoading(true);
     console.log("Posting route:", data);
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
@@ -106,9 +106,12 @@ export default function PostRoutePage() {
         description: `Your route from ${newRoute.startPoint} to ${newRoute.destination} has been successfully posted.`,
         variant: "default",
       });
-      form.reset(); 
-      // Optionally redirect or clear form
-      // router.push('/my-rides'); // Example redirect
+      form.reset();
+      // Ensure popovers are closed and suggestions cleared after successful submission
+      setIsStartPointPopoverOpen(false);
+      setStartPointSuggestions([]);
+      setIsDestinationPopoverOpen(false);
+      setDestinationSuggestions([]);
     } catch (error) {
       console.error("Error posting route:", error);
       toast({
@@ -145,18 +148,11 @@ export default function PostRoutePage() {
                     <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Input 
-                            placeholder="e.g., KR Puram" 
+                          <Input
+                            placeholder="e.g., KR Puram"
                             {...field}
                             onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setStartPointSuggestions, setIsStartPointPopoverOpen)}
-                            onFocus={(e) => {
-                                if (e.target.value.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
-                                  setStartPointSuggestions(filtered);
-                                  setIsStartPointPopoverOpen(filtered.length > 0);
-                                }
-                            }}
-                            onBlur={() => { field.onBlur(); setTimeout(() => setIsStartPointPopoverOpen(false), 150);}}
+                            onBlur={field.onBlur}
                             className="font-body text-base"
                             autoComplete="off"
                           />
@@ -169,7 +165,8 @@ export default function PostRoutePage() {
                               <div
                                 key={index}
                                 className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onClick={() => {
+                                onMouseDown={(e) => { // Use onMouseDown to prevent blur before click
+                                  e.preventDefault();
                                   field.onChange(suggestion);
                                   setIsStartPointPopoverOpen(false);
                                   setStartPointSuggestions([]);
@@ -196,18 +193,11 @@ export default function PostRoutePage() {
                      <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Input 
-                            placeholder="e.g., Google Office" 
+                          <Input
+                            placeholder="e.g., Google Office"
                             {...field}
                             onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setDestinationSuggestions, setIsDestinationPopoverOpen)}
-                             onFocus={(e) => {
-                                if (e.target.value.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
-                                  setDestinationSuggestions(filtered);
-                                  setIsDestinationPopoverOpen(filtered.length > 0);
-                                }
-                              }}
-                            onBlur={() => { field.onBlur(); setTimeout(() => setIsDestinationPopoverOpen(false), 150);}}
+                            onBlur={field.onBlur}
                             className="font-body text-base"
                             autoComplete="off"
                           />
@@ -220,7 +210,8 @@ export default function PostRoutePage() {
                               <div
                                 key={index}
                                 className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onClick={() => {
+                                onMouseDown={(e) => { // Use onMouseDown
+                                  e.preventDefault();
                                   field.onChange(suggestion);
                                   setIsDestinationPopoverOpen(false);
                                   setDestinationSuggestions([]);
@@ -324,7 +315,7 @@ export default function PostRoutePage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="cost"
@@ -357,3 +348,5 @@ export default function PostRoutePage() {
     </div>
   );
 }
+
+    

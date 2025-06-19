@@ -57,6 +57,7 @@ export default function SearchRoutesPage() {
   const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>(mockFavoriteRouteIdsInitial);
 
   const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
+
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
   const [isDestinationPopoverOpen, setIsDestinationPopoverOpen] = useState(false);
   const [startPointSuggestions, setStartPointSuggestions] = useState<string[]>([]);
@@ -77,37 +78,29 @@ export default function SearchRoutesPage() {
   useEffect(() => {
     const routes = getRoutes();
     setAllRoutes(routes);
-    setSearchResults(routes.filter(route => route.status === 'available').slice(0, 6));
+    setSearchResults(routes.filter(route => route.status === 'available').slice(0, 6)); // Initial display
     setAllKnownLocations(getAllKnownLocations());
   }, []);
 
-  const handleDestinationInputChange = (value: string, fieldChange: (value: string) => void) => {
-    fieldChange(value);
-    if (value.length > 0) {
+  const handleLocationInputChange = (
+    currentValue: string,
+    fieldOnChange: (value: string) => void,
+    setSuggestionsState: React.Dispatch<React.SetStateAction<string[]>>,
+    setPopoverOpenState: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    fieldOnChange(currentValue);
+    if (currentValue.length > 0) {
       const filtered = allKnownLocations.filter(loc =>
-        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+        loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
       );
-      setDestinationSuggestions(filtered);
-      setIsDestinationPopoverOpen(filtered.length > 0);
+      setSuggestionsState(filtered);
+      setPopoverOpenState(filtered.length > 0);
     } else {
-      setDestinationSuggestions([]);
-      setIsDestinationPopoverOpen(false);
+      setSuggestionsState([]);
+      setPopoverOpenState(false);
     }
   };
 
-  const handleStartPointInputChange = (value: string, fieldChange: (value: string) => void) => {
-    fieldChange(value);
-    if (value.length > 0) {
-      const filtered = allKnownLocations.filter(loc =>
-        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
-      );
-      setStartPointSuggestions(filtered);
-      setIsStartPointPopoverOpen(filtered.length > 0);
-    } else {
-      setStartPointSuggestions([]);
-      setIsStartPointPopoverOpen(false);
-    }
-  };
 
   const handleSearchSubmit = (data: SearchFormValues) => {
     setIsLoading(true);
@@ -120,7 +113,7 @@ export default function SearchRoutesPage() {
         if (data.destination && !route.destination.toLowerCase().includes(data.destination.toLowerCase())) {
           matches = false;
         }
-        if (data.startPoint && !route.startPoint.toLowerCase().includes(data.startPoint.toLowerCase())) {
+        if (data.startPoint && route.startPoint && !route.startPoint.toLowerCase().includes(data.startPoint.toLowerCase())) {
           matches = false;
         }
         if (data.timing) {
@@ -132,7 +125,7 @@ export default function SearchRoutesPage() {
              const searchDate = new Date(0,0,0,sH,sM);
              const routeDate = new Date(0,0,0,rH,rM);
              const diffMinutes = Math.abs((searchDate.getTime() - routeDate.getTime()) / 60000);
-             if (diffMinutes > 60) {
+             if (diffMinutes > 60) { // Allow +/- 1 hour
                  matches = false;
              }
           }
@@ -166,11 +159,11 @@ export default function SearchRoutesPage() {
         description: "The rider has been notified. Check 'My Rides' for updates.",
         variant: "default",
       });
+      // Update allRoutes to reflect the change, so subsequent filters are correct
       setAllRoutes(prevAllRoutes => prevAllRoutes.map(r => r.id === routeId ? updatedRoute : r));
-      // Re-filter search results to only show available routes
-      setSearchResults(prevResults =>
-        prevResults.map(r => r.id === routeId ? updatedRoute : r).filter(r => r.status === 'available')
-      );
+      // Re-filter search results based on the latest allRoutes and current form values
+      // Or, more simply, just remove the booked one from current searchResults if its status is no longer 'available'
+      setSearchResults(prevResults => prevResults.filter(r => r.id !== routeId || updatedRoute.status === 'available'));
     } else {
       toast({
         title: "Booking Failed",
@@ -232,15 +225,8 @@ export default function SearchRoutesPage() {
                             <Input
                               placeholder="e.g., Google Office"
                               {...field}
-                              onChange={(e) => handleDestinationInputChange(e.target.value, field.onChange)}
-                              onFocus={(e) => {
-                                if (e.target.value.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
-                                  setDestinationSuggestions(filtered);
-                                  setIsDestinationPopoverOpen(filtered.length > 0);
-                                }
-                              }}
-                              onBlur={() => { field.onBlur(); setTimeout(() => setIsDestinationPopoverOpen(false), 150);}}
+                              onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setDestinationSuggestions, setIsDestinationPopoverOpen)}
+                              onBlur={field.onBlur}
                               className="font-body text-base"
                               autoComplete="off"
                             />
@@ -253,7 +239,8 @@ export default function SearchRoutesPage() {
                                 <div
                                   key={index}
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onClick={() => {
+                                  onMouseDown={(e) => { // Use onMouseDown
+                                    e.preventDefault();
                                     field.onChange(suggestion);
                                     setIsDestinationPopoverOpen(false);
                                     setDestinationSuggestions([]);
@@ -282,15 +269,8 @@ export default function SearchRoutesPage() {
                             <Input
                               placeholder="e.g., KR Puram"
                               {...field}
-                              onChange={(e) => handleStartPointInputChange(e.target.value, field.onChange)}
-                              onFocus={(e) => {
-                                if (e.target.value.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
-                                  setStartPointSuggestions(filtered);
-                                  setIsStartPointPopoverOpen(filtered.length > 0);
-                                }
-                              }}
-                              onBlur={() => { field.onBlur(); setTimeout(() => setIsStartPointPopoverOpen(false), 150);}}
+                              onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setStartPointSuggestions, setIsStartPointPopoverOpen)}
+                              onBlur={field.onBlur}
                               className="font-body text-base"
                               autoComplete="off"
                             />
@@ -303,7 +283,8 @@ export default function SearchRoutesPage() {
                                 <div
                                   key={index}
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onClick={() => {
+                                  onMouseDown={(e) => { // Use onMouseDown
+                                    e.preventDefault();
                                     field.onChange(suggestion);
                                     setIsStartPointPopoverOpen(false);
                                     setStartPointSuggestions([]);
@@ -324,8 +305,8 @@ export default function SearchRoutesPage() {
 
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="filters">
-                  <AccordionTrigger className="font-headline text-lg text-primary hover:text-primary/80 hover:no-underline focus:no-underline">
-                    <SlidersHorizontal className="mr-2 h-5 w-5" /> Advanced Filters
+                  <AccordionTrigger className="font-headline text-lg text-primary hover:text-primary/80 hover:no-underline focus:no-underline flex items-center gap-2 py-3 px-1">
+                    <SlidersHorizontal className="h-5 w-5" /> Advanced Filters
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
@@ -458,7 +439,7 @@ export default function SearchRoutesPage() {
                 route={route}
                 onBook={handleBookRide}
                 onViewDetails={handleViewDetails}
-                isFavorited={favoriteRouteIds.includes(route.id)}
+                isFavorited={Array.isArray(favoriteRouteIds) && favoriteRouteIds.includes(route.id)}
                 onToggleFavorite={handleToggleFavorite}
               />
             ))}
@@ -480,3 +461,5 @@ export default function SearchRoutesPage() {
     </div>
   );
 }
+
+    
