@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, PlusCircle, Repeat } from "lucide-react";
 import { UserIcon } from "@/components/icons/user-icon";
+import { addRoute } from "@/lib/route-store";
 
 const daysOfWeek = [
   { id: "mon", label: "Monday" },
@@ -39,6 +40,8 @@ const postRouteSchema = z.object({
     message: "You have to select at least one day.",
   }),
   availableSeats: z.coerce.number().min(1, "Must offer at least 1 seat.").max(10, "Cannot offer more than 10 seats."),
+  // Optional cost field - for simplicity, not adding to form now, will be undefined by default
+  // cost: z.coerce.number().positive("Cost must be a positive number.").optional(),
 });
 
 type PostRouteFormValues = z.infer<typeof postRouteSchema>;
@@ -57,10 +60,20 @@ export default function PostRoutePage() {
   });
 
   function onSubmit(data: PostRouteFormValues) {
-    console.log("Route data:", data); // Placeholder for actual submission
+    const newRoutePayload = {
+        startPoint: data.startPoint,
+        destination: data.destination,
+        timing: data.timing,
+        days: data.days,
+        availableSeats: data.availableSeats,
+        // cost: data.cost // if cost field was added to form
+    };
+    const newRoute = addRoute(newRoutePayload);
+    console.log("New route posted to store:", newRoute);
+
     toast({
       title: "Route Posted!",
-      description: "Your route has been successfully posted. Buddies can now find it.",
+      description: `Your route from ${newRoute.startPoint} to ${newRoute.destination} has been successfully posted.`,
       variant: "default",
     });
     form.reset();
@@ -142,7 +155,7 @@ export default function PostRoutePage() {
                         max="10"
                         {...field}
                         value={(field.value === null || typeof field.value === 'undefined' || isNaN(Number(field.value))) ? '' : String(field.value)}
-                        onChange={(e) => field.onChange(e.target.value)} // Pass string value, Zod will coerce
+                        onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
                         className="font-body text-base"
                       />
                     </FormControl>

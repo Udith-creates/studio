@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { MapIcon, ListIcon, Search, MapPin, Clock, CalendarDays, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRoutes, updateRouteStatus, getRouteById } from "@/lib/route-store";
 
 const daysOfWeek = [
   { id: "mon", label: "Monday" },
@@ -42,14 +43,6 @@ const searchRouteSchema = z.object({
 
 type SearchRouteFormValues = z.infer<typeof searchRouteSchema>;
 
-// Mock data for search results
-const mockRoutes: Route[] = [
-  { id: "1", startPoint: "Downtown", destination: "Tech Park", timing: "08:00", days: ["Mon", "Wed", "Fri"], rider: { id: "r1", name: "Alice", role: 'rider' }, availableSeats: 2, cost: 5.00, status: 'available' },
-  { id: "2", startPoint: "Suburbia", destination: "Tech Park", timing: "08:30", days: ["Mon", "Tue", "Wed", "Thu", "Fri"], rider: { id: "r2", name: "Bob", role: 'rider' }, availableSeats: 1, cost: 7.50, status: 'full' },
-  { id: "3", startPoint: "Old Town", destination: "City Center", timing: "09:00", days: ["Sat", "Sun"], rider: { id: "r3", name: "Charlie", role: 'rider' }, availableSeats: 3, cost: 3.00, status: 'available' },
-  { id: "4", startPoint: "Westside", destination: "Tech Park", timing: "07:45", days: ["Mon", "Wed"], rider: { id: "r4", name: "Diana", role: 'rider' }, availableSeats: 1, cost: 6.20, status: 'confirmed' },
-];
-
 export default function SearchRoutesPage() {
   const { toast } = useToast();
   const [searchResults, setSearchResults] = useState<Route[]>([]);
@@ -66,19 +59,23 @@ export default function SearchRoutesPage() {
   });
 
   function onSubmit(data: SearchRouteFormValues) {
-    console.log("Search criteria:", data); // Placeholder for actual search logic
-    // Filter mock routes based on destination (case-insensitive)
-    const results = mockRoutes.filter(route => 
-      route.destination.toLowerCase().includes(data.destination.toLowerCase()) &&
-      (!data.timing || route.timing === data.timing) &&
-      (!data.days || data.days.length === 0 || data.days.some(day => route.days.map(d => d.toLowerCase().substring(0,3)).includes(day)))
-    );
+    console.log("Search criteria:", data);
+    const allCurrentRoutes = getRoutes();
+    
+    const results = allCurrentRoutes.filter(route => {
+      const destinationMatch = route.destination.toLowerCase().includes(data.destination.toLowerCase());
+      const timingMatch = !data.timing || route.timing === data.timing;
+      const daysMatch = !data.days || data.days.length === 0 || data.days.every(day => route.days.map(d => d.toLowerCase().substring(0,3)).includes(day));
+      const statusMatch = route.status === 'available';
+      return destinationMatch && timingMatch && daysMatch && statusMatch;
+    });
+
     setSearchResults(results);
     setSearched(true);
     if (results.length === 0) {
       toast({
-        title: "No Routes Found",
-        description: "Try adjusting your search criteria.",
+        title: "No Available Routes Found",
+        description: "Try adjusting your search criteria or check back later.",
         variant: "default",
       });
     }
@@ -86,23 +83,41 @@ export default function SearchRoutesPage() {
 
   const handleBookRide = (routeId: string) => {
     console.log("Book ride:", routeId);
-    toast({
-      title: "Ride Requested!",
-      description: "The rider has been notified of your request.",
-      variant: "default",
-    });
-    // Here you would typically update the route status or create a booking record
-    setSearchResults(prevResults => prevResults.map(r => r.id === routeId ? {...r, status: 'requested'} : r));
+    const currentRoute = getRouteById(routeId);
+    if (!currentRoute) {
+        toast({ title: "Error", description: "Route not found.", variant: "destructive" });
+        return;
+    }
+    if (currentRoute.availableSeats <= 0 && currentRoute.status !== 'requested') { // allow re-request if already requested
+        toast({ title: "Ride Full or Unavailable", description: "This ride has no available seats or is not available.", variant: "default" });
+        return;
+    }
+
+    const updatedRoute = updateRouteStatus(routeId, 'requested');
+    
+    if (updatedRoute) {
+        toast({
+          title: "Ride Requested!",
+          description: "The rider has been notified of your request. Check 'My Rides' for updates.",
+          variant: "default",
+        });
+        setSearchResults(prevResults => prevResults.map(r => r.id === routeId ? updatedRoute : r));
+    } else {
+        toast({
+            title: "Error",
+            description: "Could not update ride status.",
+            variant: "destructive",
+          });
+    }
   };
 
   const handleViewDetails = (routeId: string) => {
     console.log("View details for route:", routeId);
-    // This would typically navigate to a route details page or show a modal
-    const route = searchResults.find(r => r.id === routeId) || mockRoutes.find(r => r.id === routeId);
+    const route = getRouteById(routeId);
     if (route) {
       toast({
         title: `Details for ${route.startPoint} to ${route.destination}`,
-        description: `Rider: ${route.rider.name}, Time: ${route.timing}, Seats: ${route.availableSeats}`,
+        description: `Rider: ${route.rider.name}, Time: ${route.timing}, Seats: ${route.availableSeats}, Status: ${route.status || 'N/A'}, Cost: ${route.cost ? `₹${route.cost.toFixed(2)}` : 'Not specified'}`,
       });
     }
   };
