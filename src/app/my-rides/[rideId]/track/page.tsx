@@ -1,12 +1,13 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, UserCircle, Car } from 'lucide-react';
+import { useParams } from 'next/navigation'; // Import useParams
 
 interface RideTrackingDetails {
   id: string;
@@ -19,8 +20,8 @@ interface RideTrackingDetails {
 // Mock function to get ride details based on new locations
 const getMockRideDetails = (rideId: string): RideTrackingDetails => {
   // Scenario 1: Current user BOOKED this ride (is a BUDDY)
-  // rideId would be like "booked1" (maps to routeX_kr_google)
-  if (rideId === "booked1") {
+  // rideId would be like "booked1_arjun_with_priya"
+  if (rideId === "booked1_arjun_with_priya") {
     return {
       id: rideId,
       startPoint: "KR Puram", 
@@ -30,25 +31,25 @@ const getMockRideDetails = (rideId: string): RideTrackingDetails => {
     };
   }
   // Scenario 2: Current user OFFERED this ride (is a RIDER)
-  // rideId would be like "offered1" (KR Puram to Google Office)
-  if (rideId === "offered1") { 
+  // rideId would be like "offered1_arjun" (KR Puram to Google Office)
+  if (rideId === "offered1_arjun") { 
     return {
       id: rideId,
       startPoint: "KR Puram", 
       destination: "Google Office",
-      otherPartyName: "Sunita (Buddy)", // The buddy who joined (from mockRequests in MyRidesPage)
+      otherPartyName: "Priya (Buddy)", // The buddy who joined (from mockRequests in MyRidesPage)
       trackedElementName: "Buddy's Location",
     };
   }
    // Scenario 3: Current user OFFERED this ride (is a RIDER)
-  // rideId would be like "offered2" (My Home (Tin Factory) to Gopalan Mall)
-  if (rideId === "offered2") { 
+  // rideId would be like "offered_priya_gopalan" (My Home (Tin Factory) to Gopalan Mall)
+  if (rideId === "offered_priya_gopalan") { 
     return {
       id: rideId,
       startPoint: "My Home (Tin Factory)", 
       destination: "Gopalan Mall",
-      // Assuming a buddy "Rohan" was confirmed for this ride for tracking demo
-      otherPartyName: "Rohan (Buddy)", 
+      // Assuming a buddy "Arjun" was confirmed for this ride for tracking demo
+      otherPartyName: "Arjun (Buddy)", 
       trackedElementName: "Buddy's Location",
     };
   }
@@ -62,8 +63,10 @@ const getMockRideDetails = (rideId: string): RideTrackingDetails => {
   };
 };
 
-export default function TrackRidePage({ params }: { params: { rideId: string } }) {
-  const rideId = params.rideId;
+export default function TrackRidePage() {
+  const params = useParams(); // Use the hook
+  const rideId = params.rideId as string; // Access rideId from the hook's return value
+
   const [rideDetails, setRideDetails] = useState<RideTrackingDetails | null>(null);
 
   // Initial positions as percentages of map dimensions
@@ -71,7 +74,9 @@ export default function TrackRidePage({ params }: { params: { rideId: string } }
   const [otherPartyPosition, setOtherPartyPosition] = useState({ x: 15, y: 75 }); 
 
   useEffect(() => {
-    setRideDetails(getMockRideDetails(rideId));
+    if (rideId) { // Ensure rideId is available
+      setRideDetails(getMockRideDetails(rideId));
+    }
   }, [rideId]);
 
   useEffect(() => {
