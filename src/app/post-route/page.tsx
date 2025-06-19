@@ -88,6 +88,7 @@ export default function PostRoutePage() {
         variant: "default",
       });
       form.reset();
+      // Reset popover states after successful submission
       setIsStartPointPopoverOpen(false);
       setStartPointSuggestions([]);
       setIsDestinationPopoverOpen(false);
@@ -133,11 +134,10 @@ export default function PostRoutePage() {
                             <Input
                               id={formItemId}
                               placeholder="e.g., KR Puram"
-                              {...field}
-                              value={field.value || ''}
+                              value={field.value}
                               onChange={(e) => {
                                 const currentValue = e.target.value;
-                                field.onChange(currentValue);
+                                field.onChange(currentValue); // Update react-hook-form state
                                 if (currentValue.length > 0) {
                                   const filtered = allKnownLocations.filter(loc =>
                                     loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
@@ -149,12 +149,15 @@ export default function PostRoutePage() {
                                   setIsStartPointPopoverOpen(false);
                                 }
                               }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="font-body text-base"
                             />
                           </FormControl>
                         </PopoverTrigger>
                         {startPointSuggestions.length > 0 && (
-                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                             <div className="max-h-48 overflow-y-auto">
                               {startPointSuggestions.map((suggestion, index) => (
                                 <div
@@ -162,8 +165,8 @@ export default function PostRoutePage() {
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
                                   onMouseDown={(e) => { 
                                     e.preventDefault();
+                                    field.onChange(suggestion); // Update react-hook-form state
                                     form.setValue("startPoint", suggestion, { shouldValidate: true });
-                                    field.onChange(suggestion);
                                     setIsStartPointPopoverOpen(false);
                                     setStartPointSuggestions([]);
                                   }}
@@ -195,11 +198,10 @@ export default function PostRoutePage() {
                             <Input
                               id={formItemId}
                               placeholder="e.g., Google Office"
-                              {...field}
-                              value={field.value || ''}
+                              value={field.value}
                               onChange={(e) => {
                                 const currentValue = e.target.value;
-                                field.onChange(currentValue);
+                                field.onChange(currentValue); // Update react-hook-form state
                                 if (currentValue.length > 0) {
                                   const filtered = allKnownLocations.filter(loc =>
                                     loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
@@ -211,12 +213,15 @@ export default function PostRoutePage() {
                                   setIsDestinationPopoverOpen(false);
                                 }
                               }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                               className="font-body text-base"
                             />
                           </FormControl>
                         </PopoverTrigger>
                         {destinationSuggestions.length > 0 && (
-                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                             <div className="max-h-48 overflow-y-auto">
                               {destinationSuggestions.map((suggestion, index) => (
                                 <div
@@ -224,8 +229,8 @@ export default function PostRoutePage() {
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
                                   onMouseDown={(e) => { 
                                     e.preventDefault();
+                                    field.onChange(suggestion); // Update react-hook-form state
                                     form.setValue("destination", suggestion, { shouldValidate: true });
-                                    field.onChange(suggestion);
                                     setIsDestinationPopoverOpen(false);
                                     setDestinationSuggestions([]);
                                   }}
@@ -266,6 +271,7 @@ export default function PostRoutePage() {
                        <Select
                           onValueChange={(value) => field.onChange(parseInt(value))}
                           defaultValue={String(field.value)}
+                          value={String(field.value)}
                         >
                           <FormControl>
                             <SelectTrigger className="font-body text-base">
@@ -337,7 +343,7 @@ export default function PostRoutePage() {
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2">₹ Cost per Seat (INR, Optional)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 150" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} className="font-body text-base"/>
+                      <Input type="number" placeholder="e.g., 150" {...field} value={field.value ?? ""} onChange={e => field.onChange(parseFloat(e.target.value) || undefined)} className="font-body text-base"/>
                     </FormControl>
                     <FormDescription className="font-body text-sm">
                       Leave blank or 0 if the ride is free. Otherwise, enter the cost for one seat.
