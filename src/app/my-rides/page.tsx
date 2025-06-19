@@ -161,7 +161,7 @@ export default function MyRidesPage() {
                   >
                     <div className="w-full space-y-2">
                         {booking.status === 'confirmed' && (
-                           <Link href={`/my-rides/${booking.id}/track`} passHref legacyBehavior>
+                           <Link href={`/my-rides/${booking.id}/track`}>
                              <Button variant="outline" size="sm" className="w-full font-headline">
                                <MapPin className="mr-2 h-4 w-4"/> Track Ride
                              </Button>
