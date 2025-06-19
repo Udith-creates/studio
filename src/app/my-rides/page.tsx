@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,8 +9,9 @@ import type { Route, Booking } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { BikeIcon } from "@/components/icons/bike-icon";
 import { UserIcon } from "@/components/icons/user-icon";
-import { AlertTriangle, Check, ListChecks, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { AlertTriangle, Check, ListChecks, ThumbsDown, ThumbsUp, X, MapPin } from "lucide-react";
 import RouteCard from "@/components/features/routes/route-card"; // Re-use for consistency
+import Link from "next/link";
 
 // Mock current user
 const currentUserId = "user123";
@@ -17,8 +19,8 @@ const currentUser = { id: currentUserId, name: "Me", role: 'buddy' as 'rider' | 
 
 // Mock data
 const mockOfferedRides: Route[] = [
-  { id: "offered1", startPoint: "My Home", destination: "Office", timing: "08:00", days: ["Mon", "Wed", "Fri"], rider: currentUser, availableSeats: 2, cost: 4.00, status: 'available' },
-  { id: "offered2", startPoint: "My Home", destination: "Gym", timing: "18:00", days: ["Tue", "Thu"], rider: currentUser, availableSeats: 1, cost: 2.50, status: 'confirmed' },
+  { id: "offered1", startPoint: "My Home", destination: "Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: currentUser, availableSeats: 2, cost: 400.00, status: 'available' },
+  { id: "offered2", startPoint: "My Home", destination: "Gym", timing: "18:00", days: ["tue", "thu"], rider: currentUser, availableSeats: 1, cost: 250.00, status: 'confirmed' },
 ];
 
 const mockBookedRides: Booking[] = [
@@ -29,8 +31,8 @@ const mockBookedRides: Booking[] = [
 // To make Booking displayable in RouteCard, we need to map it or create a specific BookingCard
 // For simplicity, let's assume we can fetch full route details for booked rides.
 const mockRoutesForBookings: Record<string, Route> = {
-  routeX: { id: "routeX", startPoint: "Downtown", destination: "Tech Park", timing: "08:00", days: ["Mon", "Wed"], rider: { id: "r1", name: "Alice", role: 'rider' }, availableSeats: 0, cost: 5.00, status: 'confirmed'},
-  routeY: { id: "routeY", startPoint: "Suburbia", destination: "Airport", timing: "14:00", days: ["Sat"], rider: { id: "r2", name: "Bob", role: 'rider' }, availableSeats: 1, cost: 15.00, status: 'available' /* but pending for me */ },
+  routeX: { id: "routeX", startPoint: "Downtown", destination: "Tech Park", timing: "08:00", days: ["mon", "wed"], rider: { id: "r1", name: "Alice", role: 'rider' }, availableSeats: 0, cost: 500.00, status: 'confirmed'},
+  routeY: { id: "routeY", startPoint: "Suburbia", destination: "Airport", timing: "14:00", days: ["sat"], rider: { id: "r2", name: "Bob", role: 'rider' }, availableSeats: 1, cost: 1500.00, status: 'available' /* but pending for me */ },
 };
 
 
@@ -133,7 +135,7 @@ export default function MyRidesPage() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground font-body">You haven't offered any rides yet. <Button variant="link" asChild><a href="/post-route">Post one now!</a></Button></p>
+            <p className="text-muted-foreground font-body">You haven't offered any rides yet. <Button variant="link" asChild><Link href="/post-route">Post one now!</Link></Button></p>
           )}
         </TabsContent>
 
@@ -157,17 +159,26 @@ export default function MyRidesPage() {
                     route={displayRoute} 
                     onViewDetails={() => toast({title: `Viewing details for ride with ${booking.rider.name}`})}
                   >
-                    {booking.status !== 'cancelled' && booking.status !== 'completed' && (
-                       <Button variant="destructive" size="sm" onClick={() => cancelBooking(booking.id)} className="w-full mt-2 font-headline">
-                        <X className="mr-2 h-4 w-4"/> Cancel Booking
-                       </Button>
-                    )}
+                    <div className="w-full space-y-2">
+                        {booking.status === 'confirmed' && (
+                           <Link href={`/my-rides/${booking.id}/track`} passHref legacyBehavior>
+                             <Button variant="outline" size="sm" className="w-full font-headline">
+                               <MapPin className="mr-2 h-4 w-4"/> Track Ride
+                             </Button>
+                           </Link>
+                        )}
+                        {(booking.status !== 'cancelled' && booking.status !== 'completed') && (
+                           <Button variant="destructive" size="sm" onClick={() => cancelBooking(booking.id)} className="w-full font-headline">
+                            <X className="mr-2 h-4 w-4"/> Cancel Booking
+                           </Button>
+                        )}
+                    </div>
                   </RouteCard>
                 );
               })}
             </div>
           ) : (
-             <p className="text-muted-foreground font-body">You haven't booked any rides yet. <Button variant="link" asChild><a href="/search-routes">Find one now!</a></Button></p>
+             <p className="text-muted-foreground font-body">You haven't booked any rides yet. <Button variant="link" asChild><Link href="/search-routes">Find one now!</Link></Button></p>
           )}
         </TabsContent>
       </Tabs>
