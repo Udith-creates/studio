@@ -13,6 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  useFormField, // Import useFormField
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,7 +55,7 @@ export default function SearchRoutesPage() {
   const [allRoutes, setAllRoutes] = useState<Route[]>([]);
   const [searchResults, setSearchResults] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>([]); // Corrected initialization
+  const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>([]); 
 
   const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
 
@@ -76,7 +77,7 @@ export default function SearchRoutesPage() {
   });
   
   useEffect(() => {
-    setFavoriteRouteIds(mockFavoriteRouteIdsInitial); // Initialize with mock data
+    setFavoriteRouteIds(mockFavoriteRouteIdsInitial); 
   }, []);
 
   useEffect(() => {
@@ -143,8 +144,14 @@ export default function SearchRoutesPage() {
         description: "The rider has been notified. Check 'My Rides' for updates.",
         variant: "default",
       });
-      setAllRoutes(prevAllRoutes => prevAllRoutes.map(r => r.id === routeId ? updatedRoute : r));
-      setSearchResults(prevResults => prevResults.filter(r => r.id !== routeId || updatedRoute.status === 'available'));
+      // Refresh all routes and search results to reflect change
+      const currentRoutes = getRoutes();
+      setAllRoutes(currentRoutes);
+      setSearchResults(prevResults => {
+        // Update the specific route in existing results or filter out if no longer available
+        const newResults = prevResults.map(r => r.id === routeId ? updatedRoute : r);
+        return newResults.filter(r => r.status === 'available'); // Only show available routes
+      });
     } else {
       toast({
         title: "Booking Failed",
@@ -197,122 +204,128 @@ export default function SearchRoutesPage() {
                 <FormField
                   control={form.control}
                   name="destination"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Destination</FormLabel>
-                      <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g., Google Office"
-                              value={field.value}
-                              name={field.name}
-                              ref={field.ref}
-                              onBlur={field.onBlur}
-                              onChange={(e) => {
-                                const currentValue = e.target.value;
-                                field.onChange(currentValue);
+                  render={({ field }) => {
+                    const { formItemId } = useFormField(); // Get ID
+                    return (
+                      <FormItem>
+                        <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Destination</FormLabel>
+                        <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Input
+                                id={formItemId} // Explicitly set ID
+                                placeholder="e.g., Google Office"
+                                name={field.name}
+                                ref={field.ref}
+                                onBlur={field.onBlur}
+                                value={field.value}
+                                onChange={(e) => {
+                                  const currentValue = e.target.value;
+                                  field.onChange(currentValue);
 
-                                if (currentValue.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc =>
-                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-                                  );
-                                  setDestinationSuggestions(filtered);
-                                  setIsDestinationPopoverOpen(filtered.length > 0);
-                                } else {
-                                  setDestinationSuggestions([]);
-                                  setIsDestinationPopoverOpen(false);
-                                }
-                              }}
-                              className="font-body text-base"
-                              autoComplete="off"
-                            />
-                          </FormControl>
-                        </PopoverTrigger>
-                        {destinationSuggestions.length > 0 && (
-                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <div className="max-h-48 overflow-y-auto">
-                              {destinationSuggestions.map((suggestion, index) => (
-                                <div
-                                  key={index}
-                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onMouseDown={(e) => { 
-                                    e.preventDefault();
-                                    field.onChange(suggestion);
-                                    setIsDestinationPopoverOpen(false);
+                                  if (currentValue.length > 0) {
+                                    const filtered = allKnownLocations.filter(loc =>
+                                      loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                    );
+                                    setDestinationSuggestions(filtered);
+                                    setIsDestinationPopoverOpen(filtered.length > 0);
+                                  } else {
                                     setDestinationSuggestions([]);
-                                  }}
-                                >
-                                  {suggestion}
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        )}
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                                    setIsDestinationPopoverOpen(false);
+                                  }
+                                }}
+                                className="font-body text-base"
+                              />
+                            </FormControl>
+                          </PopoverTrigger>
+                          {destinationSuggestions.length > 0 && (
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                              <div className="max-h-48 overflow-y-auto">
+                                {destinationSuggestions.map((suggestion, index) => (
+                                  <div
+                                    key={index}
+                                    className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                    onMouseDown={(e) => { 
+                                      e.preventDefault();
+                                      form.setValue("destination", suggestion, { shouldValidate: true });
+                                      setIsDestinationPopoverOpen(false);
+                                      setDestinationSuggestions([]);
+                                    }}
+                                  >
+                                    {suggestion}
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          )}
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
                   name="startPoint"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Start Point (Optional)</FormLabel>
-                       <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g., KR Puram"
-                              value={field.value}
-                              name={field.name}
-                              ref={field.ref}
-                              onBlur={field.onBlur}
-                              onChange={(e) => {
-                                const currentValue = e.target.value;
-                                field.onChange(currentValue);
+                  render={({ field }) => {
+                    const { formItemId } = useFormField(); // Get ID
+                    return (
+                      <FormItem>
+                        <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Start Point (Optional)</FormLabel>
+                         <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Input
+                                id={formItemId} // Explicitly set ID
+                                placeholder="e.g., KR Puram"
+                                name={field.name}
+                                ref={field.ref}
+                                onBlur={field.onBlur}
+                                value={field.value}
+                                onChange={(e) => {
+                                  const currentValue = e.target.value;
+                                  field.onChange(currentValue);
 
-                                if (currentValue.length > 0) {
-                                  const filtered = allKnownLocations.filter(loc =>
-                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-                                  );
-                                  setStartPointSuggestions(filtered);
-                                  setIsStartPointPopoverOpen(filtered.length > 0);
-                                } else {
-                                  setStartPointSuggestions([]);
-                                  setIsStartPointPopoverOpen(false);
-                                }
-                              }}
-                              className="font-body text-base"
-                              autoComplete="off"
-                            />
-                          </FormControl>
-                        </PopoverTrigger>
-                        {startPointSuggestions.length > 0 && (
-                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <div className="max-h-48 overflow-y-auto">
-                              {startPointSuggestions.map((suggestion, index) => (
-                                <div
-                                  key={index}
-                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onMouseDown={(e) => { 
-                                    e.preventDefault();
-                                    field.onChange(suggestion);
-                                    setIsStartPointPopoverOpen(false);
+                                  if (currentValue.length > 0) {
+                                    const filtered = allKnownLocations.filter(loc =>
+                                      loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                    );
+                                    setStartPointSuggestions(filtered);
+                                    setIsStartPointPopoverOpen(filtered.length > 0);
+                                  } else {
                                     setStartPointSuggestions([]);
-                                  }}
-                                >
-                                  {suggestion}
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        )}
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                                    setIsStartPointPopoverOpen(false);
+                                  }
+                                }}
+                                className="font-body text-base"
+                              />
+                            </FormControl>
+                          </PopoverTrigger>
+                          {startPointSuggestions.length > 0 && (
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                              <div className="max-h-48 overflow-y-auto">
+                                {startPointSuggestions.map((suggestion, index) => (
+                                  <div
+                                    key={index}
+                                    className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                    onMouseDown={(e) => { 
+                                      e.preventDefault();
+                                      form.setValue("startPoint", suggestion, { shouldValidate: true });
+                                      setIsStartPointPopoverOpen(false);
+                                      setStartPointSuggestions([]);
+                                    }}
+                                  >
+                                    {suggestion}
+                                  </div>
+                                ))}
+                              </div>
+                            </PopoverContent>
+                          )}
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
 

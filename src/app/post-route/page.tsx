@@ -14,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  useFormField, // Import useFormField
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -87,6 +88,7 @@ export default function PostRoutePage() {
         variant: "default",
       });
       form.reset();
+      // Also reset popover states if needed, though they should close on blur/selection
       setIsStartPointPopoverOpen(false);
       setStartPointSuggestions([]);
       setIsDestinationPopoverOpen(false);
@@ -121,123 +123,131 @@ export default function PostRoutePage() {
               <FormField
                 control={form.control}
                 name="startPoint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Start Point</FormLabel>
-                    <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., KR Puram"
-                            value={field.value}
-                            name={field.name}
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            onChange={(e) => {
-                              const currentValue = e.target.value;
-                              field.onChange(currentValue); // Update RHF state
+                render={({ field }) => {
+                  const { formItemId } = useFormField(); // Get ID for the input
+                  return (
+                    <FormItem>
+                      <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Start Point</FormLabel>
+                      <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Input
+                              id={formItemId} // Explicitly set ID
+                              placeholder="e.g., KR Puram"
+                              name={field.name}
+                              ref={field.ref}
+                              onBlur={field.onBlur}
+                              value={field.value}
+                              onChange={(e) => {
+                                const currentValue = e.target.value;
+                                field.onChange(currentValue); 
 
-                              if (currentValue.length > 0) {
-                                const filtered = allKnownLocations.filter(loc =>
-                                  loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-                                );
-                                setStartPointSuggestions(filtered);
-                                setIsStartPointPopoverOpen(filtered.length > 0);
-                              } else {
-                                setStartPointSuggestions([]);
-                                setIsStartPointPopoverOpen(false);
-                              }
-                            }}
-                            className="font-body text-base"
-                            autoComplete="off"
-                          />
-                        </FormControl>
-                      </PopoverTrigger>
-                      {startPointSuggestions.length > 0 && (
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <div className="max-h-48 overflow-y-auto">
-                            {startPointSuggestions.map((suggestion, index) => (
-                              <div
-                                key={index}
-                                className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onMouseDown={(e) => { 
-                                  e.preventDefault();
-                                  field.onChange(suggestion);
-                                  setIsStartPointPopoverOpen(false);
+                                if (currentValue.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc =>
+                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                  );
+                                  setStartPointSuggestions(filtered);
+                                  setIsStartPointPopoverOpen(filtered.length > 0);
+                                } else {
                                   setStartPointSuggestions([]);
-                                }}
-                              >
-                                {suggestion}
-                              </div>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      )}
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                                  setIsStartPointPopoverOpen(false);
+                                }
+                              }}
+                              className="font-body text-base"
+                            />
+                          </FormControl>
+                        </PopoverTrigger>
+                        {startPointSuggestions.length > 0 && (
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <div className="max-h-48 overflow-y-auto">
+                              {startPointSuggestions.map((suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                  onMouseDown={(e) => { 
+                                    e.preventDefault();
+                                    field.onChange(suggestion);
+                                    form.setValue("startPoint", suggestion, { shouldValidate: true });
+                                    setIsStartPointPopoverOpen(false);
+                                    setStartPointSuggestions([]);
+                                  }}
+                                >
+                                  {suggestion}
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        )}
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
                 control={form.control}
                 name="destination"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Destination</FormLabel>
-                     <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., Google Office"
-                            value={field.value}
-                            name={field.name}
-                            ref={field.ref}
-                            onBlur={field.onBlur}
-                            onChange={(e) => {
-                              const currentValue = e.target.value;
-                              field.onChange(currentValue); // Update RHF state
+                render={({ field }) => {
+                  const { formItemId } = useFormField(); // Get ID for the input
+                  return (
+                    <FormItem>
+                      <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/>Destination</FormLabel>
+                       <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Input
+                              id={formItemId} // Explicitly set ID
+                              placeholder="e.g., Google Office"
+                              name={field.name}
+                              ref={field.ref}
+                              onBlur={field.onBlur}
+                              value={field.value}
+                              onChange={(e) => {
+                                const currentValue = e.target.value;
+                                field.onChange(currentValue);
 
-                              if (currentValue.length > 0) {
-                                const filtered = allKnownLocations.filter(loc =>
-                                  loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-                                );
-                                setDestinationSuggestions(filtered);
-                                setIsDestinationPopoverOpen(filtered.length > 0);
-                              } else {
-                                setDestinationSuggestions([]);
-                                setIsDestinationPopoverOpen(false);
-                              }
-                            }}
-                            className="font-body text-base"
-                            autoComplete="off"
-                          />
-                        </FormControl>
-                      </PopoverTrigger>
-                      {destinationSuggestions.length > 0 && (
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <div className="max-h-48 overflow-y-auto">
-                            {destinationSuggestions.map((suggestion, index) => (
-                              <div
-                                key={index}
-                                className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onMouseDown={(e) => { 
-                                  e.preventDefault();
-                                  field.onChange(suggestion);
-                                  setIsDestinationPopoverOpen(false);
+                                if (currentValue.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc =>
+                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                  );
+                                  setDestinationSuggestions(filtered);
+                                  setIsDestinationPopoverOpen(filtered.length > 0);
+                                } else {
                                   setDestinationSuggestions([]);
-                                }}
-                              >
-                                {suggestion}
-                              </div>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      )}
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                                  setIsDestinationPopoverOpen(false);
+                                }
+                              }}
+                              className="font-body text-base"
+                            />
+                          </FormControl>
+                        </PopoverTrigger>
+                        {destinationSuggestions.length > 0 && (
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <div className="max-h-48 overflow-y-auto">
+                              {destinationSuggestions.map((suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                  onMouseDown={(e) => { 
+                                    e.preventDefault();
+                                    field.onChange(suggestion);
+                                    form.setValue("destination", suggestion, { shouldValidate: true });
+                                    setIsDestinationPopoverOpen(false);
+                                    setDestinationSuggestions([]);
+                                  }}
+                                >
+                                  {suggestion}
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        )}
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="grid md:grid-cols-2 gap-6">
