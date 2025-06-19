@@ -19,13 +19,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import RouteCard from "@/components/features/routes/route-card";
 import type { Route } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { getRoutes, updateRouteStatus, getRouteById } from "@/lib/route-store";
+import { getRoutes, updateRouteStatus, getAllKnownLocations } from "@/lib/route-store";
 import { Search, Filter, SlidersHorizontal, MapPin, Clock, CalendarDays, Loader2, Heart, Users } from "lucide-react";
 
-// Mock data for favorite routes, assuming these IDs match routes that might be in the route-store
 const mockFavoriteRouteIdsInitial: string[] = ["fav1_from_store", "fav2_from_store"];
 
 const daysOfWeek = [
@@ -41,7 +41,7 @@ const daysOfWeek = [
 const searchSchema = z.object({
   destination: z.string().min(1, "Destination is required."),
   startPoint: z.string().optional(),
-  timing: z.string().optional(), // Can be more specific with regex if needed HH:MM
+  timing: z.string().optional(), 
   days: z.array(z.string()).optional(),
   maxCost: z.coerce.number().positive().optional(),
   minSeats: z.coerce.number().min(1).optional(),
@@ -56,6 +56,12 @@ export default function SearchRoutesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>(new Set(mockFavoriteRouteIdsInitial));
 
+  const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
+  const [isDestinationPopoverOpen, setIsDestinationPopoverOpen] = useState(false);
+  const [startPointSuggestions, setStartPointSuggestions] = useState<string[]>([]);
+  const [isStartPointPopoverOpen, setIsStartPointPopoverOpen] = useState(false);
+
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchSchema),
     defaultValues: {
@@ -69,21 +75,47 @@ export default function SearchRoutesPage() {
   });
 
   useEffect(() => {
-    // Load all routes once on component mount
-    setAllRoutes(getRoutes());
-    // Initially, show some available routes or let user search
-    setSearchResults(getRoutes().filter(route => route.status === 'available').slice(0, 6)); 
+    const routes = getRoutes();
+    setAllRoutes(routes);
+    setSearchResults(routes.filter(route => route.status === 'available').slice(0, 6)); 
+    setAllKnownLocations(getAllKnownLocations());
   }, []);
+
+  const handleDestinationInputChange = (value: string, fieldChange: (value: string) => void) => {
+    fieldChange(value);
+    if (value.length > 0) {
+      const filtered = allKnownLocations.filter(loc =>
+        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+      );
+      setDestinationSuggestions(filtered);
+      setIsDestinationPopoverOpen(filtered.length > 0);
+    } else {
+      setDestinationSuggestions([]);
+      setIsDestinationPopoverOpen(false);
+    }
+  };
+
+  const handleStartPointInputChange = (value: string, fieldChange: (value: string) => void) => {
+    fieldChange(value);
+    if (value.length > 0) {
+      const filtered = allKnownLocations.filter(loc =>
+        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+      );
+      setStartPointSuggestions(filtered);
+      setIsStartPointPopoverOpen(filtered.length > 0);
+    } else {
+      setStartPointSuggestions([]);
+      setIsStartPointPopoverOpen(false);
+    }
+  };
 
   const handleSearchSubmit = (data: SearchFormValues) => {
     setIsLoading(true);
     console.log("Search criteria:", data);
-
-    // Simulate API call delay
     setTimeout(() => {
       const filteredRoutes = allRoutes.filter(route => {
         let matches = true;
-        if (route.status !== 'available') return false; // Only show available routes
+        if (route.status !== 'available') return false; 
 
         if (data.destination && !route.destination.toLowerCase().includes(data.destination.toLowerCase())) {
           matches = false;
@@ -92,18 +124,15 @@ export default function SearchRoutesPage() {
           matches = false;
         }
         if (data.timing) {
-          // Basic time matching: route.timing "08:00" should match data.timing "08:00"
-          // Could be enhanced for time ranges
-          const searchTime = data.timing; // e.g. "08:30"
-          const routeTime = route.timing; // e.g. "08:00"
+          const searchTime = data.timing; 
+          const routeTime = route.timing; 
           if (searchTime && routeTime) {
-            // Example: Match if routeTime is within +/- 1 hour of searchTime
              const [sH, sM] = searchTime.split(':').map(Number);
              const [rH, rM] = routeTime.split(':').map(Number);
              const searchDate = new Date(0,0,0,sH,sM);
              const routeDate = new Date(0,0,0,rH,rM);
              const diffMinutes = Math.abs((searchDate.getTime() - routeDate.getTime()) / 60000);
-             if (diffMinutes > 60) { // More than 1 hour difference
+             if (diffMinutes > 60) { 
                  matches = false;
              }
           }
@@ -137,12 +166,10 @@ export default function SearchRoutesPage() {
         description: "The rider has been notified. Check 'My Rides' for updates.",
         variant: "default",
       });
-      // Refresh search results to reflect the change in status/seats
-      // Or simply remove/update this specific card. For now, a full re-filter.
-      setSearchResults(prevResults => prevResults.map(r => r.id === routeId ? updatedRoute : r).filter(r => r.status === 'available'));
-      // Also update allRoutes if it's the source of truth for subsequent searches
       setAllRoutes(prevAllRoutes => prevAllRoutes.map(r => r.id === routeId ? updatedRoute : r));
-
+      setSearchResults(prevResults => 
+        prevResults.map(r => r.id === routeId ? updatedRoute : r).filter(r => r.status === 'available')
+      );
     } else {
       toast({
         title: "Booking Failed",
@@ -198,9 +225,46 @@ export default function SearchRoutesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Destination</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Google Office" {...field} className="font-body text-base" />
-                      </FormControl>
+                      <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Google Office" 
+                              {...field}
+                              onChange={(e) => handleDestinationInputChange(e.target.value, field.onChange)}
+                              onFocus={(e) => {
+                                if (e.target.value.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
+                                  setDestinationSuggestions(filtered);
+                                  setIsDestinationPopoverOpen(filtered.length > 0);
+                                }
+                              }}
+                              onBlur={() => { field.onBlur(); setTimeout(() => setIsDestinationPopoverOpen(false), 150);}}
+                              className="font-body text-base" 
+                              autoComplete="off"
+                            />
+                          </FormControl>
+                        </PopoverTrigger>
+                        {destinationSuggestions.length > 0 && (
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <div className="max-h-48 overflow-y-auto">
+                              {destinationSuggestions.map((suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                  onClick={() => {
+                                    field.onChange(suggestion);
+                                    setIsDestinationPopoverOpen(false);
+                                    setDestinationSuggestions([]);
+                                  }}
+                                >
+                                  {suggestion}
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        )}
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -211,9 +275,46 @@ export default function SearchRoutesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Start Point (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., KR Puram" {...field} className="font-body text-base" />
-                      </FormControl>
+                       <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., KR Puram" 
+                              {...field} 
+                              onChange={(e) => handleStartPointInputChange(e.target.value, field.onChange)}
+                              onFocus={(e) => {
+                                if (e.target.value.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
+                                  setStartPointSuggestions(filtered);
+                                  setIsStartPointPopoverOpen(filtered.length > 0);
+                                }
+                              }}
+                              onBlur={() => { field.onBlur(); setTimeout(() => setIsStartPointPopoverOpen(false), 150);}}
+                              className="font-body text-base"
+                              autoComplete="off"
+                            />
+                          </FormControl>
+                        </PopoverTrigger>
+                        {startPointSuggestions.length > 0 && (
+                          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <div className="max-h-48 overflow-y-auto">
+                              {startPointSuggestions.map((suggestion, index) => (
+                                <div
+                                  key={index}
+                                  className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                  onClick={() => {
+                                    field.onChange(suggestion);
+                                    setIsStartPointPopoverOpen(false);
+                                    setStartPointSuggestions([]);
+                                  }}
+                                >
+                                  {suggestion}
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        )}
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -358,7 +459,7 @@ export default function SearchRoutesPage() {
                 route={route} 
                 onBook={handleBookRide} 
                 onViewDetails={handleViewDetails}
-                isFavorited={favoriteRouteIds.has(route.id)}
+                isFavorited={favoriteRouteIds.includes(route.id)}
                 onToggleFavorite={handleToggleFavorite}
               />
             ))}
@@ -380,5 +481,3 @@ export default function SearchRoutesPage() {
     </div>
   );
 }
-
-    

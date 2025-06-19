@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,10 +17,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, PlusCircle, Repeat, IndianRupee } from "lucide-react";
 import { UserIcon } from "@/components/icons/user-icon";
-import { addRoute } from "@/lib/route-store";
+import { addRoute, getAllKnownLocations } from "@/lib/route-store";
 
 const daysOfWeek = [
   { id: "mon", label: "Monday" },
@@ -47,6 +48,12 @@ type PostRouteFormValues = z.infer<typeof postRouteSchema>;
 
 export default function PostRoutePage() {
   const { toast } = useToast();
+  const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
+  const [isDestinationPopoverOpen, setIsDestinationPopoverOpen] = useState(false);
+  const [startPointSuggestions, setStartPointSuggestions] = useState<string[]>([]);
+  const [isStartPointPopoverOpen, setIsStartPointPopoverOpen] = useState(false);
+
   const form = useForm<PostRouteFormValues>({
     resolver: zodResolver(postRouteSchema),
     defaultValues: {
@@ -58,6 +65,39 @@ export default function PostRoutePage() {
       cost: undefined,
     },
   });
+
+  useEffect(() => {
+    setAllKnownLocations(getAllKnownLocations());
+  }, []);
+
+  const handleDestinationInputChange = (value: string, fieldChange: (value: string) => void) => {
+    fieldChange(value);
+    if (value.length > 0) {
+      const filtered = allKnownLocations.filter(loc =>
+        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+      );
+      setDestinationSuggestions(filtered);
+      setIsDestinationPopoverOpen(filtered.length > 0);
+    } else {
+      setDestinationSuggestions([]);
+      setIsDestinationPopoverOpen(false);
+    }
+  };
+
+  const handleStartPointInputChange = (value: string, fieldChange: (value: string) => void) => {
+    fieldChange(value);
+    if (value.length > 0) {
+      const filtered = allKnownLocations.filter(loc =>
+        loc.toLowerCase().includes(value.toLowerCase()) && loc.toLowerCase() !== value.toLowerCase()
+      );
+      setStartPointSuggestions(filtered);
+      setIsStartPointPopoverOpen(filtered.length > 0);
+    } else {
+      setStartPointSuggestions([]);
+      setIsStartPointPopoverOpen(false);
+    }
+  };
+
 
   function onSubmit(data: PostRouteFormValues) {
     const newRoutePayload = {
@@ -77,6 +117,7 @@ export default function PostRoutePage() {
       variant: "default",
     });
     form.reset();
+    setAllKnownLocations(getAllKnownLocations()); // Refresh locations after adding new route
   }
 
   return (
@@ -100,9 +141,46 @@ export default function PostRoutePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Start Point</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., KR Puram Station" {...field} className="font-body text-base" />
-                    </FormControl>
+                    <Popover open={isStartPointPopoverOpen} onOpenChange={setIsStartPointPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., KR Puram Station" 
+                            {...field} 
+                            onChange={(e) => handleStartPointInputChange(e.target.value, field.onChange)}
+                            onFocus={(e) => {
+                              if (e.target.value.length > 0) {
+                                const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
+                                setStartPointSuggestions(filtered);
+                                setIsStartPointPopoverOpen(filtered.length > 0);
+                              }
+                            }}
+                            onBlur={() => { field.onBlur(); setTimeout(() => setIsStartPointPopoverOpen(false), 150);}}
+                            className="font-body text-base" 
+                            autoComplete="off"
+                          />
+                        </FormControl>
+                      </PopoverTrigger>
+                      {startPointSuggestions.length > 0 && (
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                           <div className="max-h-48 overflow-y-auto">
+                            {startPointSuggestions.map((suggestion, index) => (
+                              <div
+                                key={index}
+                                className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                onClick={() => {
+                                  field.onChange(suggestion);
+                                  setIsStartPointPopoverOpen(false);
+                                  setStartPointSuggestions([]);
+                                }}
+                              >
+                                {suggestion}
+                              </div>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      )}
+                    </Popover>
                     <FormDescription className="font-body">
                       Where does your daily route begin?
                     </FormDescription>
@@ -116,9 +194,46 @@ export default function PostRoutePage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Destination</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Google Office, Whitefield" {...field} className="font-body text-base" />
-                    </FormControl>
+                     <Popover open={isDestinationPopoverOpen} onOpenChange={setIsDestinationPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., Google Office, Whitefield" 
+                            {...field} 
+                            onChange={(e) => handleDestinationInputChange(e.target.value, field.onChange)}
+                            onFocus={(e) => {
+                              if (e.target.value.length > 0) {
+                                const filtered = allKnownLocations.filter(loc => loc.toLowerCase().includes(e.target.value.toLowerCase()) && loc.toLowerCase() !== e.target.value.toLowerCase());
+                                setDestinationSuggestions(filtered);
+                                setIsDestinationPopoverOpen(filtered.length > 0);
+                              }
+                            }}
+                            onBlur={() => { field.onBlur(); setTimeout(() => setIsDestinationPopoverOpen(false), 150);}}
+                            className="font-body text-base" 
+                            autoComplete="off"
+                          />
+                        </FormControl>
+                      </PopoverTrigger>
+                      {destinationSuggestions.length > 0 && (
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                           <div className="max-h-48 overflow-y-auto">
+                            {destinationSuggestions.map((suggestion, index) => (
+                              <div
+                                key={index}
+                                className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                onClick={() => {
+                                  field.onChange(suggestion);
+                                  setIsDestinationPopoverOpen(false);
+                                  setDestinationSuggestions([]);
+                                }}
+                              >
+                                {suggestion}
+                              </div>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      )}
+                    </Popover>
                     <FormDescription className="font-body">
                       Where does your daily route end?
                     </FormDescription>
