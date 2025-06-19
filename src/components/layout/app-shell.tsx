@@ -49,10 +49,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-background overflow-x-hidden">
           {children}
         </div>
       </SidebarInset>
     </div>
   );
 }
+
