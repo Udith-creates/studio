@@ -1,3 +1,4 @@
+// src/components/layout/app-shell.tsx
 "use client";
 
 import type { ReactNode } from 'react';
@@ -6,7 +7,7 @@ import Header from './header';
 import Link from 'next/link';
 import { BikeIcon } from '../icons/bike-icon';
 import { UserIcon } from '../icons/user-icon';
-import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks } from 'lucide-react';
+import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks, CreditCard } from 'lucide-react';
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -17,7 +18,7 @@ const navItems = [
   { href: "/dashboard", label: "Green Impact", icon: LayoutDashboard },
   { href: "/profile", label: "Profile", icon: UserCircle },
   { href: "/calculate-cost", label: "Cost Calculator", icon: DollarSign },
-  // { href: "/payments", label: "Payments Demo", icon: CreditCard }, // Placeholder
+  { href: "/payments", label: "Payments Demo", icon: CreditCard },
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
