@@ -1,7 +1,6 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BikeIcon } from "@/components/icons/bike-icon";
-import { UserIcon } from "@/components/icons/user-icon";
 import { ArrowRight, Search, PlusCircle, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +10,9 @@ export default function HomePage() {
     <div className="container mx-auto py-8 px-4">
       <section className="text-center py-12 md:py-20 bg-gradient-to-br from-primary to-blue-700 rounded-xl shadow-2xl text-primary-foreground">
         <div className="max-w-3xl mx-auto">
-          <BikeIcon className="h-24 w-24 mx-auto mb-6 text-accent" />
+          <div className="mb-6 flex justify-center">
+            <Image src="/logo.png" alt="BroRide Logo" width={280} height={70} priority className="object-contain" />
+          </div>
           <h1 className="text-5xl md:text-6xl font-headline font-bold mb-6">
             Welcome to BroRide!
           </h1>
@@ -112,17 +113,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Onboarding illustrations placeholder */}
-      {/* This section can be expanded with custom illustrations for onboarding if provided */}
-      {/* 
-      <section className="py-16 text-center">
-        <h2 className="text-3xl font-headline font-semibold mb-8">Easy Onboarding</h2>
-        <div className="flex justify-center">
-          <Image src="https://placehold.co/800x300.png" alt="Onboarding illustration" width={800} height={300} className="rounded-lg" data-ai-hint="friendly illustration"/>
-        </div>
-      </section>
-      */}
     </div>
   );
 }

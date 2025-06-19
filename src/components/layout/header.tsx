@@ -2,8 +2,8 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { BikeIcon } from '../icons/bike-icon';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 
@@ -15,8 +15,7 @@ export default function Header() {
         {isMobile && <SidebarTrigger />}
         {!isMobile && (
           <Link href="/" className="flex items-center gap-2 text-primary hover:text-primary/90">
-            <BikeIcon className="h-7 w-7" />
-            <span className="text-xl font-headline font-semibold">BroRide</span>
+            <Image src="/logo.png" alt="BroRide Logo" width={120} height={30} className="object-contain" />
           </Link>
         )}
       </div>
