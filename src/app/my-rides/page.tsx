@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Route, Booking } from "@/types";
+import type { Route, Booking, User } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { BikeIcon } from "@/components/icons/bike-icon";
 import { UserIcon } from "@/components/icons/user-icon";
@@ -15,15 +15,15 @@ import Link from "next/link";
 
 // Mock current user
 const currentUserId = "user123";
-const currentUser = { id: currentUserId, name: "Me", role: 'buddy' as 'rider' | 'buddy' }; // Role can change
+const currentUser: User = { id: currentUserId, name: "Alex Rider", role: 'buddy' }; // Role can change
 
 // Mock data
-const mockOfferedRides: Route[] = [
+const mockOfferedRidesInitial: Route[] = [
   { id: "offered1", startPoint: "My Home", destination: "Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: currentUser, availableSeats: 2, cost: 400.00, status: 'available' },
   { id: "offered2", startPoint: "My Home", destination: "Gym", timing: "18:00", days: ["tue", "thu"], rider: currentUser, availableSeats: 1, cost: 250.00, status: 'confirmed' },
 ];
 
-const mockBookedRides: Booking[] = [
+const mockBookedRidesInitial: Booking[] = [
   { id: "booked1", routeId: "routeX", buddy: currentUser, rider: { id: "r1", name: "Alice", role: 'rider' }, status: 'confirmed', requestedAt: new Date(), updatedAt: new Date() },
   { id: "booked2", routeId: "routeY", buddy: currentUser, rider: { id: "r2", name: "Bob", role: 'rider' }, status: 'pending', requestedAt: new Date() },
 ];
@@ -38,8 +38,8 @@ const mockRoutesForBookings: Record<string, Route> = {
 
 export default function MyRidesPage() {
   const { toast } = useToast();
-  const [offeredRides, setOfferedRides] = useState<Route[]>(mockOfferedRides);
-  const [bookedRides, setBookedRides] = useState<Booking[]>(mockBookedRides);
+  const [offeredRides, setOfferedRides] = useState<Route[]>(mockOfferedRidesInitial);
+  const [bookedRides, setBookedRides] = useState<Booking[]>(mockBookedRidesInitial);
 
   // Mock incoming requests for rides I'm offering
   const [rideRequests, setRideRequests] = useState<Booking[]>([
@@ -47,14 +47,20 @@ export default function MyRidesPage() {
   ]);
 
   const handleRequestAction = (requestId: string, action: 'accept' | 'decline') => {
-    setRideRequests(prev => prev.filter(req => req.id !== requestId));
-    // If accepted, update the offered ride status (e.g., reduce available seats, change status if full)
     const request = rideRequests.find(req => req.id === requestId);
-    if (request && action === 'accept') {
+    if (!request) return;
+
+    setRideRequests(prev => prev.filter(req => req.id !== requestId));
+    
+    if (action === 'accept') {
         setOfferedRides(prevOffered => prevOffered.map(or => {
             if (or.id === request.routeId) {
                 const newSeats = or.availableSeats -1;
-                return {...or, availableSeats: newSeats, status: newSeats === 0 ? 'full' : 'confirmed' };
+                let newStatus: Route['status'] = 'confirmed';
+                if (newSeats <= 0) {
+                    newStatus = 'full';
+                }
+                return {...or, availableSeats: newSeats, status: newStatus };
             }
             return or;
         }));
@@ -72,6 +78,7 @@ export default function MyRidesPage() {
 
   const cancelOfferedRide = (routeId: string) => {
     setOfferedRides(prev => prev.map(r => r.id === routeId ? {...r, status: 'cancelled'} : r));
+    // Also cancel any pending requests for this ride if needed (not implemented here)
     toast({ title: "Ride Cancelled", description: "Your offered ride has been cancelled." });
   }
 
@@ -98,18 +105,21 @@ export default function MyRidesPage() {
             <CardContent>
               {rideRequests.length > 0 ? (
                 <ul className="space-y-4">
-                  {rideRequests.map(req => (
-                    <li key={req.id} className="p-4 border rounded-md flex flex-col sm:flex-row justify-between items-center gap-4 bg-secondary/30">
-                      <div>
-                        <p className="font-semibold font-body">{req.buddy.name} wants to join your ride to <span className="text-primary">{mockRoutesForBookings[req.routeId]?.destination || offeredRides.find(r => r.id === req.routeId)?.destination}</span>.</p>
-                        <p className="text-sm text-muted-foreground font-body">Requested on: {req.requestedAt.toLocaleDateString()}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleRequestAction(req.id, 'accept')} className="bg-green-500 hover:bg-green-600 font-headline"><ThumbsUp className="mr-1 h-4 w-4"/>Accept</Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleRequestAction(req.id, 'decline')} className="font-headline"><ThumbsDown className="mr-1 h-4 w-4"/>Decline</Button>
-                      </div>
-                    </li>
-                  ))}
+                  {rideRequests.map(req => {
+                    const relatedOfferedRoute = offeredRides.find(r => r.id === req.routeId);
+                    return (
+                      <li key={req.id} className="p-4 border rounded-md flex flex-col sm:flex-row justify-between items-center gap-4 bg-secondary/30">
+                        <div>
+                          <p className="font-semibold font-body">{req.buddy.name} wants to join your ride to <span className="text-primary">{relatedOfferedRoute?.destination}</span>.</p>
+                          <p className="text-sm text-muted-foreground font-body">Requested on: {req.requestedAt.toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => handleRequestAction(req.id, 'accept')} className="bg-green-500 hover:bg-green-600 font-headline"><ThumbsUp className="mr-1 h-4 w-4"/>Accept</Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleRequestAction(req.id, 'decline')} className="font-headline"><ThumbsDown className="mr-1 h-4 w-4"/>Decline</Button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="text-muted-foreground font-body">No pending requests.</p>
@@ -126,11 +136,20 @@ export default function MyRidesPage() {
                   route={route} 
                   onViewDetails={() => toast({title: "Viewing details for your offered ride."})} 
                 >
-                  {route.status !== 'cancelled' && route.status !== 'completed' && (
-                    <Button variant="destructive" size="sm" onClick={() => cancelOfferedRide(route.id)} className="w-full mt-2 font-headline">
-                      <X className="mr-2 h-4 w-4"/> Cancel Ride
-                    </Button>
-                  )}
+                  <div className="w-full space-y-2 mt-2">
+                    {(route.status === 'confirmed' || route.status === 'full') && route.status !== 'completed' && route.status !== 'cancelled' && (
+                        <Link href={`/my-rides/${route.id}/track`}>
+                            <Button variant="outline" size="sm" className="w-full font-headline">
+                            <MapPin className="mr-2 h-4 w-4"/> Track Ride
+                            </Button>
+                        </Link>
+                    )}
+                    {route.status !== 'cancelled' && route.status !== 'completed' && (
+                      <Button variant="destructive" size="sm" onClick={() => cancelOfferedRide(route.id)} className="w-full font-headline">
+                        <X className="mr-2 h-4 w-4"/> Cancel Ride
+                      </Button>
+                    )}
+                  </div>
                 </RouteCard>
               ))}
             </div>
@@ -145,9 +164,8 @@ export default function MyRidesPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {bookedRides.map(booking => {
                 const routeDetails = mockRoutesForBookings[booking.routeId];
-                if (!routeDetails) return null; // Or show placeholder
+                if (!routeDetails) return null; 
                 
-                // Augment routeDetails with booking status for display in RouteCard
                 const displayRoute: Route = {
                     ...routeDetails,
                     status: booking.status === 'pending' ? 'requested' : booking.status === 'accepted' ? 'confirmed' : booking.status
@@ -159,7 +177,7 @@ export default function MyRidesPage() {
                     route={displayRoute} 
                     onViewDetails={() => toast({title: `Viewing details for ride with ${booking.rider.name}`})}
                   >
-                    <div className="w-full space-y-2">
+                    <div className="w-full space-y-2 mt-2">
                         {booking.status === 'confirmed' && (
                            <Link href={`/my-rides/${booking.id}/track`}>
                              <Button variant="outline" size="sm" className="w-full font-headline">
