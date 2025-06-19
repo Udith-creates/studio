@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Clock, MapPin, PlusCircle, Repeat } from "lucide-react";
+import { UserIcon } from "@/components/icons/user-icon";
 
 const daysOfWeek = [
   { id: "mon", label: "Monday" },
@@ -134,7 +136,15 @@ export default function PostRoutePage() {
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2"><UserIcon className="h-5 w-5 text-primary" /> Available Seats</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" max="10" {...field} className="font-body text-base" />
+                      <Input
+                        type="number"
+                        min="1"
+                        max="10"
+                        {...field}
+                        value={(field.value === null || typeof field.value === 'undefined' || isNaN(Number(field.value))) ? '' : String(field.value)}
+                        onChange={(e) => field.onChange(e.target.value)} // Pass string value, Zod will coerce
+                        className="font-body text-base"
+                      />
                     </FormControl>
                     <FormDescription className="font-body">
                       How many seats can you offer to buddies?

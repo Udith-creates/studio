@@ -1,3 +1,4 @@
+
 // src/components/layout/app-shell.tsx
 "use client";
 
@@ -6,7 +7,7 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, Side
 import Header from './header';
 import Link from 'next/link';
 import { BikeIcon } from '../icons/bike-icon';
-import { UserIcon } from '../icons/user-icon';
+// UserIcon is not used directly here anymore, can be removed if not needed elsewhere in this file
 import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks, CreditCard } from 'lucide-react';
 
 const navItems = [
@@ -35,7 +36,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.label}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href}>
                   <SidebarMenuButton className="font-medium" tooltip={item.label}>
                     <item.icon className="h-5 w-5" />
                     <span className='font-headline'>{item.label}</span>
@@ -48,9 +49,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-background"> {/* Changed main to div */}
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </div>
   );
