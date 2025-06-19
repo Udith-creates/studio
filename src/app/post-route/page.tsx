@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, PlusCircle, Repeat } from "lucide-react";
+import { CalendarDays, Clock, MapPin, PlusCircle, Repeat, IndianRupee } from "lucide-react";
 import { UserIcon } from "@/components/icons/user-icon";
 import { addRoute } from "@/lib/route-store";
 
@@ -40,8 +40,7 @@ const postRouteSchema = z.object({
     message: "You have to select at least one day.",
   }),
   availableSeats: z.coerce.number().min(1, "Must offer at least 1 seat.").max(10, "Cannot offer more than 10 seats."),
-  // Optional cost field - for simplicity, not adding to form now, will be undefined by default
-  // cost: z.coerce.number().positive("Cost must be a positive number.").optional(),
+  cost: z.coerce.number().positive("Cost must be a positive number.").optional(),
 });
 
 type PostRouteFormValues = z.infer<typeof postRouteSchema>;
@@ -56,6 +55,7 @@ export default function PostRoutePage() {
       timing: "",
       days: [],
       availableSeats: 1,
+      cost: undefined,
     },
   });
 
@@ -66,14 +66,14 @@ export default function PostRoutePage() {
         timing: data.timing,
         days: data.days,
         availableSeats: data.availableSeats,
-        // cost: data.cost // if cost field was added to form
+        cost: data.cost 
     };
     const newRoute = addRoute(newRoutePayload);
     console.log("New route posted to store:", newRoute);
 
     toast({
       title: "Route Posted!",
-      description: `Your route from ${newRoute.startPoint} to ${newRoute.destination} has been successfully posted.`,
+      description: `Your route from ${newRoute.startPoint} to ${newRoute.destination} has been successfully posted. Cost: ₹${newRoute.cost?.toFixed(2) || 'N/A'}`,
       variant: "default",
     });
     form.reset();
@@ -101,7 +101,7 @@ export default function PostRoutePage() {
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Start Point</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Downtown Central Station" {...field} className="font-body text-base" />
+                      <Input placeholder="e.g., KR Puram Station" {...field} className="font-body text-base" />
                     </FormControl>
                     <FormDescription className="font-body">
                       Where does your daily route begin?
@@ -117,7 +117,7 @@ export default function PostRoutePage() {
                   <FormItem>
                     <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Destination</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Tech Park North Campus" {...field} className="font-body text-base" />
+                      <Input placeholder="e.g., Google Office, Whitefield" {...field} className="font-body text-base" />
                     </FormControl>
                     <FormDescription className="font-body">
                       Where does your daily route end?
@@ -137,6 +137,30 @@ export default function PostRoutePage() {
                     </FormControl>
                     <FormDescription className="font-body">
                       What time do you usually start your trip? (HH:MM format)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-headline text-lg flex items-center gap-2"><IndianRupee className="h-5 w-5 text-primary" /> Estimated Cost per Seat (₹)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 150"
+                        step="0.01"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                        className="font-body text-base"
+                      />
+                    </FormControl>
+                    <FormDescription className="font-body">
+                      How much would you like to charge per seat in INR?
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -194,9 +218,9 @@ export default function PostRoutePage() {
                                   checked={field.value?.includes(item.id)}
                                   onCheckedChange={(checked) => {
                                     return checked
-                                      ? field.onChange([...field.value, item.id])
+                                      ? field.onChange([...(field.value || []), item.id])
                                       : field.onChange(
-                                          field.value?.filter(
+                                          (field.value || []).filter(
                                             (value) => value !== item.id
                                           )
                                         );

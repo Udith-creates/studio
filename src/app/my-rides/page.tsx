@@ -15,24 +15,22 @@ import Link from "next/link";
 
 // Mock current user
 const currentUserId = "user123";
-const currentUser: User = { id: currentUserId, name: "Alex Rider", role: 'buddy' }; // Role can change
+const currentUser: User = { id: currentUserId, name: "Arjun Mehra", role: 'buddy' }; // Role can change
 
 // Mock data
 const mockOfferedRidesInitial: Route[] = [
-  { id: "offered1", startPoint: "My Home", destination: "Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: currentUser, availableSeats: 2, cost: 400.00, status: 'available' },
-  { id: "offered2", startPoint: "My Home", destination: "Gym", timing: "18:00", days: ["tue", "thu"], rider: currentUser, availableSeats: 1, cost: 250.00, status: 'confirmed' },
+  { id: "offered1", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: currentUser, availableSeats: 2, cost: 150.00, status: 'available' },
+  { id: "offered2", startPoint: "My Home (Tin Factory)", destination: "Gopalan Mall", timing: "18:00", days: ["tue", "thu"], rider: currentUser, availableSeats: 1, cost: 100.00, status: 'confirmed' },
 ];
 
 const mockBookedRidesInitial: Booking[] = [
-  { id: "booked1", routeId: "routeX", buddy: currentUser, rider: { id: "r1", name: "Alice", role: 'rider' }, status: 'confirmed', requestedAt: new Date(), updatedAt: new Date() },
-  { id: "booked2", routeId: "routeY", buddy: currentUser, rider: { id: "r2", name: "Bob", role: 'rider' }, status: 'pending', requestedAt: new Date() },
+  { id: "booked1", routeId: "routeX_kr_google", buddy: currentUser, rider: { id: "r1", name: "Priya", role: 'rider' }, status: 'confirmed', requestedAt: new Date(), updatedAt: new Date() },
+  { id: "booked2", routeId: "routeY_tin_gopalan", buddy: currentUser, rider: { id: "r2", name: "Rahul", role: 'rider' }, status: 'pending', requestedAt: new Date() },
 ];
 
-// To make Booking displayable in RouteCard, we need to map it or create a specific BookingCard
-// For simplicity, let's assume we can fetch full route details for booked rides.
 const mockRoutesForBookings: Record<string, Route> = {
-  routeX: { id: "routeX", startPoint: "Downtown", destination: "Tech Park", timing: "08:00", days: ["mon", "wed"], rider: { id: "r1", name: "Alice", role: 'rider' }, availableSeats: 0, cost: 500.00, status: 'confirmed'},
-  routeY: { id: "routeY", startPoint: "Suburbia", destination: "Airport", timing: "14:00", days: ["sat"], rider: { id: "r2", name: "Bob", role: 'rider' }, availableSeats: 1, cost: 1500.00, status: 'available' /* but pending for me */ },
+  routeX_kr_google: { id: "routeX_kr_google", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed"], rider: { id: "r1", name: "Priya", role: 'rider' }, availableSeats: 0, cost: 150.00, status: 'confirmed'},
+  routeY_tin_gopalan: { id: "routeY_tin_gopalan", startPoint: "Tin Factory", destination: "Gopalan Mall", timing: "14:00", days: ["sat"], rider: { id: "r2", name: "Rahul", role: 'rider' }, availableSeats: 1, cost: 90.00, status: 'available' /* but pending for me */ },
 };
 
 
@@ -43,7 +41,7 @@ export default function MyRidesPage() {
 
   // Mock incoming requests for rides I'm offering
   const [rideRequests, setRideRequests] = useState<Booking[]>([
-    { id: "req1", routeId: "offered1", buddy: { id: "buddy1", name: "Charlie", role: 'buddy'}, rider: currentUser, status: 'pending', requestedAt: new Date() },
+    { id: "req1", routeId: "offered1", buddy: { id: "buddy1", name: "Sunita", role: 'buddy'}, rider: currentUser, status: 'pending', requestedAt: new Date() },
   ]);
 
   const handleRequestAction = (requestId: string, action: 'accept' | 'decline') => {
@@ -67,7 +65,7 @@ export default function MyRidesPage() {
     }
     toast({
       title: `Request ${action === 'accept' ? 'Accepted' : 'Declined'}`,
-      description: `The buddy has been notified.`,
+      description: `The buddy ${request.buddy.name} has been notified.`,
     });
   };
 

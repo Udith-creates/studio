@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,8 +12,8 @@ import Link from "next/link";
 
 // Mock data for favorite routes
 const mockFavoriteRoutesInitial: Route[] = [
-  { id: "fav1", startPoint: "City Hall", destination: "University Campus", timing: "09:30", days: ["Tue", "Thu"], rider: { id: "r5", name: "Eve", role: 'rider' }, availableSeats: 1, cost: 4.50, status: 'available' },
-  { id: "fav2", startPoint: "North Station", destination: "Industrial Area", timing: "07:00", days: ["Mon", "Wed", "Fri"], rider: { id: "r6", name: "Frank", role: 'rider' }, availableSeats: 3, cost: 6.00, status: 'available' },
+  { id: "fav1", startPoint: "KR Puram", destination: "Google Office", timing: "09:30", days: ["Tue", "Thu"], rider: { id: "r5", name: "Anjali", role: 'rider' }, availableSeats: 1, cost: 140.00, status: 'available' },
+  { id: "fav2", startPoint: "Tin Factory", destination: "Gopalan Mall", timing: "07:00", days: ["Mon", "Wed", "Fri"], rider: { id: "r6", name: "Vikram", role: 'rider' }, availableSeats: 3, cost: 90.00, status: 'available' },
 ];
 
 export default function FavoritesPage() {
@@ -44,7 +45,7 @@ export default function FavoritesPage() {
     if (route) {
         toast({
             title: `Details for ${route.startPoint} to ${route.destination}`,
-            description: `Rider: ${route.rider.name}, Time: ${route.timing}, Seats: ${route.availableSeats}`,
+            description: `Rider: ${route.rider.name}, Time: ${route.timing}, Seats: ${route.availableSeats}, Cost: ₹${route.cost?.toFixed(2)}`,
         });
     }
   };

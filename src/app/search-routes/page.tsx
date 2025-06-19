@@ -109,9 +109,10 @@ export default function SearchRoutesPage() {
           variant: "default",
         });
         // Update the search results to reflect the change (e.g., status, seats)
+        // If the route became full after this request, it should no longer be shown as available.
         setSearchResults(prevResults => 
           prevResults.map(r => r.id === routeId ? updatedRoute : r)
-                     .filter(r => r.status === 'available' || r.id === routeId) // Keep showing available, or the one just requested
+                     .filter(r => r.status === 'available' || (r.id === routeId && updatedRoute.status === 'requested')) // Keep showing available, or the one just requested
         );
     } else {
         toast({
@@ -170,7 +171,7 @@ export default function SearchRoutesPage() {
                     <FormItem>
                       <FormLabel className="font-headline text-lg flex items-center gap-2"><MapPin className="h-5 w-5 text-primary"/> Destination</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Tech Park" {...field} className="font-body text-base" />
+                        <Input placeholder="e.g., Google Office" {...field} className="font-body text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

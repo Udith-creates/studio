@@ -13,32 +13,43 @@ interface RideTrackingDetails {
   startPoint: string;
   destination: string;
   otherPartyName: string; // Name of the other person (rider if you're buddy, buddy if you're rider)
-  trackedElementName: string; // e.g., "Rider's Location" or "Buddy's Location"
+  trackedElementName: string; // e.g., "Rider's Vehicle" or "Buddy's Location"
 }
 
-// Mock function to get ride details
-// In a real app, this would fetch data based on rideId and current user context
+// Mock function to get ride details based on new locations
 const getMockRideDetails = (rideId: string): RideTrackingDetails => {
   // Scenario 1: Current user BOOKED this ride (is a BUDDY)
-  // rideId would be like "booked1"
+  // rideId would be like "booked1" (maps to routeX_kr_google)
   if (rideId === "booked1") {
     return {
       id: rideId,
-      startPoint: "Downtown", // From mockRoutesForBookings.routeX
-      destination: "Tech Park",   // From mockRoutesForBookings.routeX
-      otherPartyName: "Alice (Rider)", // The person offering the ride
+      startPoint: "KR Puram", 
+      destination: "Google Office",
+      otherPartyName: "Priya (Rider)", // The person offering the ride
       trackedElementName: "Rider's Vehicle",
     };
   }
   // Scenario 2: Current user OFFERED this ride (is a RIDER)
-  // rideId would be like "offered1"
+  // rideId would be like "offered1" (KR Puram to Google Office)
   if (rideId === "offered1") { 
     return {
       id: rideId,
-      startPoint: "My Home", // From mockOfferedRides
-      destination: "Office",  // From mockOfferedRides
-      otherPartyName: "Charlie (Buddy)", // The buddy who joined
-      trackedElementName: "Buddy's Location", // Or "Your Buddy"
+      startPoint: "KR Puram", 
+      destination: "Google Office",
+      otherPartyName: "Sunita (Buddy)", // The buddy who joined (from mockRequests in MyRidesPage)
+      trackedElementName: "Buddy's Location",
+    };
+  }
+   // Scenario 3: Current user OFFERED this ride (is a RIDER)
+  // rideId would be like "offered2" (My Home (Tin Factory) to Gopalan Mall)
+  if (rideId === "offered2") { 
+    return {
+      id: rideId,
+      startPoint: "My Home (Tin Factory)", 
+      destination: "Gopalan Mall",
+      // Assuming a buddy "Rohan" was confirmed for this ride for tracking demo
+      otherPartyName: "Rohan (Buddy)", 
+      trackedElementName: "Buddy's Location",
     };
   }
   // Default/fallback
