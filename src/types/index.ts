@@ -1,3 +1,4 @@
+
 export interface Route {
   id: string;
   startPoint: string;
@@ -5,7 +6,7 @@ export interface Route {
   timing: string; // e.g., "08:00 AM"
   days: string[]; // e.g., ["Mon", "Wed", "Fri"]
   rider: User;
-  cost?: number; // Optional, can be calculated
+  cost?: number; // Optional, can be calculated, expected in INR
   availableSeats: number;
   status?: 'available' | 'requested' | 'confirmed' | 'full' | 'completed' | 'cancelled';
 }
@@ -40,7 +41,7 @@ export interface Badge {
 export interface PaymentRecord {
   id: string;
   rideId: string;
-  amount: number;
+  amount: number; // Expected in INR
   date: Date;
   status: 'pending' | 'completed' | 'failed';
   payer: User;
@@ -49,8 +50,9 @@ export interface PaymentRecord {
 
 export interface GreenImpactData {
   totalFuelSavedLiters: number;
-  totalMoneySaved: number;
+  totalMoneySaved: number; // Expected in INR
   totalDistanceSharedKm: number;
   totalCO2SavedKg: number;
   co2EquivalentTrees: number;
 }
+

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,7 +10,7 @@ import { Leaf, Droplets, Coins, Route as RouteIcon, TrendingUp, Trees, BarChart2
 // Mock data
 const mockImpactData: GreenImpactData = {
   totalFuelSavedLiters: 1250.75,
-  totalMoneySaved: 1876.12, // Assuming currency is USD or similar
+  totalMoneySaved: 156750.50, // Assuming currency is INR
   totalDistanceSharedKm: 15634.5,
   totalCO2SavedKg: 2890.3,
   co2EquivalentTrees: 133, // Approx. 21.77 kg CO2 per tree per year
@@ -51,7 +52,7 @@ export default function GreenImpactDashboardPage() {
       </CardHeader>
       <CardContent>
         <div className={`text-3xl font-bold font-headline ${colorClass}`}>
-          {typeof value === 'number' ? value.toLocaleString() : value}
+          {typeof value === 'number' ? value.toLocaleString('en-IN') : value}
           {unit && <span className="text-xl font-medium"> {unit}</span>}
         </div>
         <p className="text-xs text-muted-foreground font-body">{description}</p>
@@ -95,7 +96,7 @@ export default function GreenImpactDashboardPage() {
         />
         <StatCard 
           title="Money Saved on Fuel" 
-          value={`$${impactData.totalMoneySaved.toFixed(2)}`} 
+          value={`₹${impactData.totalMoneySaved.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} 
           icon={Coins} 
           description="Estimated total savings on fuel costs for our users."
           colorClass="text-yellow-500"
@@ -144,3 +145,4 @@ export default function GreenImpactDashboardPage() {
     </div>
   );
 }
+

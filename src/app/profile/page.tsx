@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -26,9 +27,9 @@ const mockBadges: BadgeType[] = [
 ];
 
 const mockPaymentHistory: PaymentRecord[] = [
-  { id: "p1", rideId: "rideABC", amount: 5.50, date: new Date(2023, 10, 15), status: 'completed', payer: mockUser, payee: {id: "r1", name: "Jane D.", role: "rider"} },
-  { id: "p2", rideId: "rideXYZ", amount: 3.25, date: new Date(2023, 10, 22), status: 'completed', payer: {id: "b2", name: "John S.", role: "buddy"}, payee: mockUser },
-  { id: "p3", rideId: "rideDEF", amount: 7.00, date: new Date(2023, 11, 1), status: 'pending', payer: mockUser, payee: {id: "r3", name: "Mike T.", role: "rider"} },
+  { id: "p1", rideId: "rideABC", amount: 450.50, date: new Date(2023, 10, 15), status: 'completed', payer: mockUser, payee: {id: "r1", name: "Jane D.", role: "rider"} },
+  { id: "p2", rideId: "rideXYZ", amount: 250.00, date: new Date(2023, 10, 22), status: 'completed', payer: {id: "b2", name: "John S.", role: "buddy"}, payee: mockUser },
+  { id: "p3", rideId: "rideDEF", amount: 600.75, date: new Date(2023, 11, 1), status: 'pending', payer: mockUser, payee: {id: "r3", name: "Mike T.", role: "rider"} },
 ];
 
 export default function ProfilePage() {
@@ -129,7 +130,7 @@ export default function ProfilePage() {
                       <TableRow key={payment.id} className="font-body">
                         <TableCell>{payment.date.toLocaleDateString()}</TableCell>
                         <TableCell>{payment.rideId}</TableCell>
-                        <TableCell>${payment.amount.toFixed(2)}</TableCell>
+                        <TableCell>₹{payment.amount.toFixed(2)}</TableCell>
                         <TableCell>{payment.payer.id === user.id ? 'Paid' : 'Received'}</TableCell>
                         <TableCell>{payment.payer.id === user.id ? payment.payee.name : payment.payer.name}</TableCell>
                         <TableCell className="text-right">
@@ -155,3 +156,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

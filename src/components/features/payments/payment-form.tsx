@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { CreditCard, DollarSign, Loader2, User, CheckCircle } from "lucide-react";
+import { CreditCard, Loader2, User, CheckCircle } from "lucide-react"; // Removed DollarSign as it's typically USD
 
 const paymentSchema = z.object({
   cardNumber: z.string().regex(/^\d{16}$/, "Must be 16 digits."),
@@ -62,7 +63,7 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
     setPaymentDone(true);
     toast({
       title: "Payment Successful!",
-      description: `You've paid $${data.amount.toFixed(2)} to ${riderName} for ride ${rideId}.`,
+      description: `You've paid ₹${data.amount.toFixed(2)} to ${riderName} for ride ${rideId}.`,
       variant: "default",
     });
     onPaymentSuccess(data);
@@ -78,7 +79,7 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
                 <CardDescription className="font-body">Your ride cost has been successfully shared.</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-                <p className="font-body">Amount Paid: <span className="font-semibold text-accent">${amountToPay.toFixed(2)}</span></p>
+                <p className="font-body">Amount Paid: <span className="font-semibold text-accent">₹{amountToPay.toFixed(2)}</span></p>
                 <p className="font-body">To Rider: <span className="font-semibold">{riderName}</span></p>
             </CardContent>
             <CardFooter>
@@ -96,7 +97,7 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
           <CardTitle className="text-2xl font-headline">Share Ride Cost</CardTitle>
         </div>
         <CardDescription className="font-body">
-          Securely share the cost for your ride with {riderName}. Amount: <span className="font-semibold text-accent">${amountToPay.toFixed(2)}</span>
+          Securely share the cost for your ride with {riderName}. Amount: <span className="font-semibold text-accent">₹{amountToPay.toFixed(2)}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,7 +108,10 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-headline flex items-center gap-1"><DollarSign className="h-4 w-4 text-primary"/> Amount</FormLabel>
+                  <FormLabel className="font-headline flex items-center gap-1">
+                     {/* Using a generic currency icon or simply text for INR */}
+                    <span className="text-primary">₹</span> Amount
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" {...field} readOnly className="font-body bg-muted/50"/>
                   </FormControl>
@@ -175,7 +179,7 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
               ) : (
                 <CreditCard className="mr-2 h-5 w-5" />
               )}
-              {isLoading ? "Processing..." : `Pay $${amountToPay.toFixed(2)}`}
+              {isLoading ? "Processing..." : `Pay ₹${amountToPay.toFixed(2)}`}
             </Button>
           </form>
         </Form>
@@ -183,3 +187,4 @@ export default function PaymentForm({ rideId, amountToPay, riderName, onPaymentS
     </Card>
   );
 }
+

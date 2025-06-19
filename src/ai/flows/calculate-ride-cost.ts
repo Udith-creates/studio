@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -18,8 +19,8 @@ const CalculateRideCostInputSchema = z.object({
 export type CalculateRideCostInput = z.infer<typeof CalculateRideCostInputSchema>;
 
 const CalculateRideCostOutputSchema = z.object({
-  fairCost: z.number().describe('The estimated fair cost for the ride.'),
-  breakdown: z.string().describe('A breakdown of the cost calculation.'),
+  fairCost: z.number().describe('The estimated fair cost for the ride in Indian Rupees (INR).'),
+  breakdown: z.string().describe('A breakdown of the cost calculation in Indian Rupees (INR).'),
 });
 
 export type CalculateRideCostOutput = z.infer<typeof CalculateRideCostOutputSchema>;
@@ -32,11 +33,11 @@ const calculateRideCostPrompt = ai.definePrompt({
   name: 'calculateRideCostPrompt',
   input: {schema: CalculateRideCostInputSchema},
   output: {schema: CalculateRideCostOutputSchema},
-  prompt: `You are a ride cost estimator. You will be provided the distance of the ride in miles. Using this information, calculate a fair cost for the ride, taking into account current average fuel prices and standard vehicle MPG.
+  prompt: `You are a ride cost estimator. You will be provided the distance of the ride in miles. Using this information, calculate a fair cost for the ride in Indian Rupees (INR), taking into account current average fuel prices and standard vehicle MPG in India.
 
 Distance: {{distanceMiles}} miles
 
-Output the estimated fair cost for the ride, as well as a detailed breakdown of the calculation.
+Output the estimated fair cost for the ride in INR, as well as a detailed breakdown of the calculation in INR.
 Make sure to only output the number value of the fair cost.`, 
 });
 
@@ -51,3 +52,4 @@ const calculateRideCostFlow = ai.defineFlow(
     return output!;
   }
 );
+

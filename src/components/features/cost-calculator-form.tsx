@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +46,7 @@ export default function CostCalculatorForm() {
       setResult(output);
       toast({
         title: "Cost Calculated!",
-        description: `Estimated fair cost: $${output.fairCost.toFixed(2)}`,
+        description: `Estimated fair cost: ₹${output.fairCost.toFixed(2)}`,
         variant: "default",
       });
     } catch (error) {
@@ -107,7 +108,7 @@ export default function CostCalculatorForm() {
             </CardHeader>
             <CardContent className="space-y-3 font-body">
               <p className="text-2xl font-semibold">
-                Fair Cost: <span className="text-accent">${result.fairCost.toFixed(2)}</span>
+                Fair Cost: <span className="text-accent">₹{result.fairCost.toFixed(2)}</span>
               </p>
               <div>
                 <h4 className="font-semibold text-muted-foreground mb-1">Calculation Details:</h4>
@@ -120,3 +121,4 @@ export default function CostCalculatorForm() {
     </Card>
   );
 }
+

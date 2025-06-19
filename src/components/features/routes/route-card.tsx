@@ -1,10 +1,11 @@
+
 "use client";
 
 import type { Route } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, DollarSign, MapPin, Users, CheckCircle, AlertCircle, Hourglass } from "lucide-react";
+import { CalendarDays, Clock, DollarSign, MapPin, Users, CheckCircle, AlertCircle, Hourglass, Heart } from "lucide-react";
 import { BikeIcon } from "@/components/icons/bike-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 
@@ -14,9 +15,10 @@ interface RouteCardProps {
   onViewDetails?: (routeId: string) => void;
   isFavorited?: boolean;
   onToggleFavorite?: (routeId: string) => void;
+  children?: React.ReactNode;
 }
 
-export default function RouteCard({ route, onBook, onViewDetails, isFavorited, onToggleFavorite }: RouteCardProps) {
+export default function RouteCard({ route, onBook, onViewDetails, isFavorited, onToggleFavorite, children }: RouteCardProps) {
   const getStatusBadge = (status?: Route['status']) => {
     switch (status) {
       case 'available':
@@ -27,6 +29,10 @@ export default function RouteCard({ route, onBook, onViewDetails, isFavorited, o
         return <Badge variant="default" className="bg-blue-500 hover:bg-blue-600"><CheckCircle className="mr-1 h-3 w-3" />Confirmed</Badge>;
       case 'full':
         return <Badge variant="destructive" className="bg-red-500 hover:bg-red-600"><AlertCircle className="mr-1 h-3 w-3" />Full</Badge>;
+      case 'cancelled':
+        return <Badge variant="destructive" className="bg-gray-500 hover:bg-gray-600"><AlertCircle className="mr-1 h-3 w-3" />Cancelled</Badge>;
+      case 'completed':
+        return <Badge variant="default" className="bg-purple-500 hover:bg-purple-600"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -46,7 +52,7 @@ export default function RouteCard({ route, onBook, onViewDetails, isFavorited, o
           </div>
           {onToggleFavorite && (
              <Button variant="ghost" size="icon" onClick={() => onToggleFavorite(route.id)} aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}>
-              <HeartIcon filled={isFavorited} className={`h-6 w-6 ${isFavorited ? 'text-red-500' : 'text-gray-400 hover:text-red-400'}`} />
+              <Heart className={`h-6 w-6 ${isFavorited ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-400'}`} />
             </Button>
           )}
         </div>
@@ -67,7 +73,7 @@ export default function RouteCard({ route, onBook, onViewDetails, isFavorited, o
         {route.cost && (
           <div className="flex items-center gap-2 font-body text-sm">
             <DollarSign className="h-4 w-4 text-accent" />
-            <span>Estimated Cost: <strong className="text-accent">${route.cost.toFixed(2)}</strong></span>
+            <span>Estimated Cost: <strong className="text-accent">₹{route.cost.toFixed(2)}</strong></span>
           </div>
         )}
         {route.status && (
@@ -76,38 +82,21 @@ export default function RouteCard({ route, onBook, onViewDetails, isFavorited, o
           </div>
         )}
       </CardContent>
-      <CardFooter className="p-4 bg-muted/30 border-t flex flex-col sm:flex-row gap-2 justify-end">
-        {onViewDetails && (
-          <Button variant="outline" onClick={() => onViewDetails(route.id)} className="w-full sm:w-auto font-headline">
-            View Details
-          </Button>
-        )}
-        {onBook && route.status === 'available' && (
-          <Button onClick={() => onBook(route.id)} className="w-full sm:w-auto font-headline bg-accent text-accent-foreground hover:bg-accent/90">
-            Request Ride
-          </Button>
-        )}
+      <CardFooter className="p-4 bg-muted/30 border-t flex flex-col sm:flex-row gap-2 justify-end items-center">
+        <div className="flex-grow space-y-2 sm:space-y-0 sm:flex sm:gap-2">
+            {onViewDetails && (
+              <Button variant="outline" onClick={() => onViewDetails(route.id)} className="w-full sm:w-auto font-headline">
+                View Details
+              </Button>
+            )}
+            {onBook && route.status === 'available' && (
+              <Button onClick={() => onBook(route.id)} className="w-full sm:w-auto font-headline bg-accent text-accent-foreground hover:bg-accent/90">
+                Request Ride
+              </Button>
+            )}
+        </div>
+        {children && <div className="w-full sm:w-auto mt-2 sm:mt-0">{children}</div>}
       </CardFooter>
     </Card>
-  );
-}
-
-
-function HeartIcon({ filled, ...props }: React.SVGProps<SVGSVGElement> & { filled?: boolean }) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
   );
 }

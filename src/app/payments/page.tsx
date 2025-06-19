@@ -1,3 +1,4 @@
+
 "use client";
 
 import PaymentForm from "@/components/features/payments/payment-form";
@@ -13,7 +14,7 @@ export default function PaymentsPage() {
     // Potentially add to a local list of payments or trigger a refetch of payment history.
     toast({
         title: "Payment Processed via Page",
-        description: `Successfully paid $${paymentDetails.amount.toFixed(2)}.`,
+        description: `Successfully paid ₹${paymentDetails.amount.toFixed(2)}.`,
     });
   };
 
@@ -21,10 +22,11 @@ export default function PaymentsPage() {
     <div className="container mx-auto py-8 px-4 flex justify-center">
        <PaymentForm
           rideId="DEMO_RIDE_123"
-          amountToPay={12.50} // Example amount
+          amountToPay={1000.50} // Example amount in INR
           riderName="Jane Doe"   // Example rider name
           onPaymentSuccess={handlePaymentSuccess}
         />
     </div>
   );
 }
+
