@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight, Search, PlusCircle, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { BikeIcon } from "@/components/icons/bike-icon";
+
 
 export default function HomePage() {
   return (
@@ -11,7 +13,7 @@ export default function HomePage() {
       <section className="text-center py-12 md:py-20 bg-gradient-to-br from-primary to-blue-700 rounded-xl shadow-2xl text-primary-foreground">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6 flex justify-center">
-            <Image src="/logo.png" alt="BroRide Logo" width={280} height={70} priority className="object-contain" />
+             <BikeIcon className="h-20 w-20 text-accent" />
           </div>
           <h1 className="text-5xl md:text-6xl font-headline font-bold mb-6">
             Welcome to BroRide!

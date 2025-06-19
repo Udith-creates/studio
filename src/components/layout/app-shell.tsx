@@ -6,8 +6,8 @@ import type { ReactNode } from 'react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import Header from './header';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks, CreditCard, LogIn } from 'lucide-react';
+import { BikeIcon } from '@/components/icons/bike-icon';
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -28,7 +28,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader className="p-4 items-center flex">
           <Link href="/" className="flex items-center gap-2 text-primary hover:text-primary/90">
-            <Image src="/logo.png" alt="BroRide Logo" width={160} height={40} priority className="object-contain" />
+            <BikeIcon className="h-8 w-8" />
+            <span className="font-headline text-xl font-semibold">BroRide</span>
           </Link>
         </SidebarHeader>
         <SidebarContent>
