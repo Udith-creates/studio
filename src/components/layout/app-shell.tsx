@@ -7,8 +7,7 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, Side
 import Header from './header';
 import Link from 'next/link';
 import { BikeIcon } from '../icons/bike-icon';
-// UserIcon is not used directly here anymore, can be removed if not needed elsewhere in this file
-import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks, CreditCard } from 'lucide-react';
+import { Home, Search, Heart, LayoutDashboard, UserCircle, Route, DollarSign, ListChecks, CreditCard, LogIn } from 'lucide-react';
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -17,9 +16,10 @@ const navItems = [
   { href: "/my-rides", label: "My Rides", icon: ListChecks },
   { href: "/favorites", label: "Favorites", icon: Heart },
   { href: "/dashboard", label: "Green Impact", icon: LayoutDashboard },
-  { href: "/profile", label: "Profile", icon: UserCircle },
   { href: "/calculate-cost", label: "Cost Calculator", icon: DollarSign },
   { href: "/payments", label: "Payments Demo", icon: CreditCard },
+  { href: "/profile", label: "Profile", icon: UserCircle },
+  { href: "/login", label: "Login", icon: LogIn },
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
@@ -49,7 +49,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-background"> {/* Changed main to div */}
+        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-background">
           {children}
         </div>
       </SidebarInset>

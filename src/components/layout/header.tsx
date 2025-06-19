@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -20,10 +21,11 @@ export default function Header() {
         )}
       </div>
       <div className="flex items-center gap-4">
-        {/* Placeholder for user avatar or login button */}
-        <Button variant="outline" size="sm">
-          <LogIn className="mr-2 h-4 w-4" />
-          Login
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/login">
+            <LogIn className="mr-2 h-4 w-4" />
+            Login
+          </Link>
         </Button>
       </div>
     </header>
