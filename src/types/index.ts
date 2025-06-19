@@ -4,7 +4,7 @@ export interface Route {
   startPoint: string;
   destination: string;
   timing: string; // e.g., "08:00 AM"
-  days: string[]; // e.g., ["Mon", "Wed", "Fri"]
+  days: string[]; // e.g., ["mon", "wed", "fri"] - short lowercase day codes
   rider: User;
   cost?: number; // Optional, can be calculated, expected in INR
   availableSeats: number;
@@ -55,4 +55,3 @@ export interface GreenImpactData {
   totalCO2SavedKg: number;
   co2EquivalentTrees: number;
 }
-

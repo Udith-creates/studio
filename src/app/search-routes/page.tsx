@@ -38,7 +38,7 @@ const daysOfWeek = [
 const searchRouteSchema = z.object({
   destination: z.string().min(2, "Destination must be at least 2 characters."),
   timing: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:MM).").optional().or(z.literal("")),
-  days: z.array(z.string()).optional(),
+  days: z.array(z.string()).optional(), // Expects array of short day codes e.g. ["mon", "tue"]
 });
 
 type SearchRouteFormValues = z.infer<typeof searchRouteSchema>;
@@ -65,8 +65,9 @@ export default function SearchRoutesPage() {
     const results = allCurrentRoutes.filter(route => {
       const destinationMatch = route.destination.toLowerCase().includes(data.destination.toLowerCase());
       const timingMatch = !data.timing || route.timing === data.timing;
-      const daysMatch = !data.days || data.days.length === 0 || data.days.every(day => route.days.map(d => d.toLowerCase().substring(0,3)).includes(day));
-      const statusMatch = route.status === 'available';
+      // Assumes route.days are short lowercase codes (e.g., "mon")
+      const daysMatch = !data.days || data.days.length === 0 || data.days.every(day => route.days.includes(day));
+      const statusMatch = route.status === 'available'; // Only show available routes for new bookings
       return destinationMatch && timingMatch && daysMatch && statusMatch;
     });
 
@@ -82,15 +83,21 @@ export default function SearchRoutesPage() {
   }
 
   const handleBookRide = (routeId: string) => {
-    console.log("Book ride:", routeId);
-    const currentRoute = getRouteById(routeId);
-    if (!currentRoute) {
-        toast({ title: "Error", description: "Route not found.", variant: "destructive" });
-        return;
+    console.log("Attempting to book ride:", routeId);
+    const routeToBook = getRouteById(routeId);
+
+    if (!routeToBook) {
+      toast({ title: "Error", description: "Route not found.", variant: "destructive" });
+      return;
     }
-    if (currentRoute.availableSeats <= 0 && currentRoute.status !== 'requested') { // allow re-request if already requested
-        toast({ title: "Ride Full or Unavailable", description: "This ride has no available seats or is not available.", variant: "default" });
-        return;
+
+    if (routeToBook.status !== 'available' || routeToBook.availableSeats <= 0) {
+      toast({
+        title: "Cannot Book Ride",
+        description: "This ride is currently not available or has no seats.",
+        variant: "default",
+      });
+      return;
     }
 
     const updatedRoute = updateRouteStatus(routeId, 'requested');
@@ -98,14 +105,18 @@ export default function SearchRoutesPage() {
     if (updatedRoute) {
         toast({
           title: "Ride Requested!",
-          description: "The rider has been notified of your request. Check 'My Rides' for updates.",
+          description: "The rider has been notified. Check 'My Rides' for updates.",
           variant: "default",
         });
-        setSearchResults(prevResults => prevResults.map(r => r.id === routeId ? updatedRoute : r));
+        // Update the search results to reflect the change (e.g., status, seats)
+        setSearchResults(prevResults => 
+          prevResults.map(r => r.id === routeId ? updatedRoute : r)
+                     .filter(r => r.status === 'available' || r.id === routeId) // Keep showing available, or the one just requested
+        );
     } else {
         toast({
-            title: "Error",
-            description: "Could not update ride status.",
+            title: "Booking Error",
+            description: "Could not process your ride request. Please try again.",
             variant: "destructive",
           });
     }
@@ -135,7 +146,6 @@ export default function SearchRoutesPage() {
       return newFavorites;
     });
   };
-
 
   return (
     <div className="container mx-auto py-8 px-4">
