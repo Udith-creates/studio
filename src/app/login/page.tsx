@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -27,18 +27,18 @@ export default function LoginPage() {
 
     setIsLoading(false);
 
-    // Replace with actual authentication logic
+    // This is a simulated login. Replace with actual authentication logic in a real app.
     if (email === "test@example.com" && password === "password") {
       toast({
-        title: "Login Successful!",
-        description: "Welcome back to BroRide!",
+        title: "Login Successful (Simulated)",
+        description: "Welcome back to BroRide! Redirecting...",
         variant: "default",
       });
       router.push("/"); // Redirect to homepage or dashboard
     } else {
       toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        title: "Login Failed (Simulated)",
+        description: "Invalid email or password. Please use test@example.com and 'password'.",
         variant: "destructive",
       });
       setPassword(""); // Clear password field on failure
@@ -52,7 +52,7 @@ export default function LoginPage() {
           <LogIn className="mx-auto h-12 w-12 text-primary mb-4" />
           <CardTitle className="text-3xl font-headline">Login to BroRide</CardTitle>
           <CardDescription className="font-body text-base">
-            Access your account to manage your rides.
+            Access your account to manage your rides. (Simulated Login)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="test@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -75,7 +75,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -101,6 +101,9 @@ export default function LoginPage() {
             <Link href="/signup" className="font-medium text-primary hover:underline">
               Sign up
             </Link>
+          </p>
+           <p className="mt-4 text-center text-xs text-muted-foreground font-body">
+            Use email: <strong>test@example.com</strong> and password: <strong>password</strong> for this demo.
           </p>
         </CardContent>
       </Card>
