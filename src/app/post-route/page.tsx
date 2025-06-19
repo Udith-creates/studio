@@ -73,26 +73,6 @@ export default function PostRoutePage() {
     setAllKnownLocations(getAllKnownLocations());
   }, []);
 
-  const handleLocationInputChange = (
-    currentValue: string,
-    fieldOnChange: (value: string) => void,
-    setSuggestionsState: React.Dispatch<React.SetStateAction<string[]>>,
-    setPopoverOpenState: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    fieldOnChange(currentValue); // Update react-hook-form state
-    if (currentValue.length > 0) {
-      const filtered = allKnownLocations.filter(loc =>
-        loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-      );
-      setSuggestionsState(filtered);
-      setPopoverOpenState(filtered.length > 0);
-    } else {
-      setSuggestionsState([]);
-      setPopoverOpenState(false);
-    }
-  };
-
-
   async function onSubmit(data: PostRouteFormValues) {
     setIsLoading(true);
     console.log("Posting route:", data);
@@ -107,7 +87,6 @@ export default function PostRoutePage() {
         variant: "default",
       });
       form.reset();
-      // Ensure popovers are closed and suggestions cleared after successful submission
       setIsStartPointPopoverOpen(false);
       setStartPointSuggestions([]);
       setIsDestinationPopoverOpen(false);
@@ -150,9 +129,25 @@ export default function PostRoutePage() {
                         <FormControl>
                           <Input
                             placeholder="e.g., KR Puram"
-                            {...field}
-                            onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setStartPointSuggestions, setIsStartPointPopoverOpen)}
+                            value={field.value}
+                            name={field.name}
+                            ref={field.ref}
                             onBlur={field.onBlur}
+                            onChange={(e) => {
+                              const currentValue = e.target.value;
+                              field.onChange(currentValue); // Update RHF state
+
+                              if (currentValue.length > 0) {
+                                const filtered = allKnownLocations.filter(loc =>
+                                  loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                );
+                                setStartPointSuggestions(filtered);
+                                setIsStartPointPopoverOpen(filtered.length > 0);
+                              } else {
+                                setStartPointSuggestions([]);
+                                setIsStartPointPopoverOpen(false);
+                              }
+                            }}
                             className="font-body text-base"
                             autoComplete="off"
                           />
@@ -165,7 +160,7 @@ export default function PostRoutePage() {
                               <div
                                 key={index}
                                 className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onMouseDown={(e) => { // Use onMouseDown to prevent blur before click
+                                onMouseDown={(e) => { 
                                   e.preventDefault();
                                   field.onChange(suggestion);
                                   setIsStartPointPopoverOpen(false);
@@ -195,9 +190,25 @@ export default function PostRoutePage() {
                         <FormControl>
                           <Input
                             placeholder="e.g., Google Office"
-                            {...field}
-                            onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setDestinationSuggestions, setIsDestinationPopoverOpen)}
+                            value={field.value}
+                            name={field.name}
+                            ref={field.ref}
                             onBlur={field.onBlur}
+                            onChange={(e) => {
+                              const currentValue = e.target.value;
+                              field.onChange(currentValue); // Update RHF state
+
+                              if (currentValue.length > 0) {
+                                const filtered = allKnownLocations.filter(loc =>
+                                  loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                );
+                                setDestinationSuggestions(filtered);
+                                setIsDestinationPopoverOpen(filtered.length > 0);
+                              } else {
+                                setDestinationSuggestions([]);
+                                setIsDestinationPopoverOpen(false);
+                              }
+                            }}
                             className="font-body text-base"
                             autoComplete="off"
                           />
@@ -210,7 +221,7 @@ export default function PostRoutePage() {
                               <div
                                 key={index}
                                 className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                onMouseDown={(e) => { // Use onMouseDown
+                                onMouseDown={(e) => { 
                                   e.preventDefault();
                                   field.onChange(suggestion);
                                   setIsDestinationPopoverOpen(false);
@@ -348,5 +359,3 @@ export default function PostRoutePage() {
     </div>
   );
 }
-
-    

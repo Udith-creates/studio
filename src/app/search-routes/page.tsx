@@ -54,7 +54,7 @@ export default function SearchRoutesPage() {
   const [allRoutes, setAllRoutes] = useState<Route[]>([]);
   const [searchResults, setSearchResults] = useState<Route[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>(mockFavoriteRouteIdsInitial);
+  const [favoriteRouteIds, setFavoriteRouteIds] = useState<string[]>([]); // Corrected initialization
 
   const [allKnownLocations, setAllKnownLocations] = useState<string[]>([]);
 
@@ -74,33 +74,17 @@ export default function SearchRoutesPage() {
       minSeats: 1,
     },
   });
+  
+  useEffect(() => {
+    setFavoriteRouteIds(mockFavoriteRouteIdsInitial); // Initialize with mock data
+  }, []);
 
   useEffect(() => {
     const routes = getRoutes();
     setAllRoutes(routes);
-    setSearchResults(routes.filter(route => route.status === 'available').slice(0, 6)); // Initial display
+    setSearchResults(routes.filter(route => route.status === 'available').slice(0, 6)); 
     setAllKnownLocations(getAllKnownLocations());
   }, []);
-
-  const handleLocationInputChange = (
-    currentValue: string,
-    fieldOnChange: (value: string) => void,
-    setSuggestionsState: React.Dispatch<React.SetStateAction<string[]>>,
-    setPopoverOpenState: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    fieldOnChange(currentValue);
-    if (currentValue.length > 0) {
-      const filtered = allKnownLocations.filter(loc =>
-        loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
-      );
-      setSuggestionsState(filtered);
-      setPopoverOpenState(filtered.length > 0);
-    } else {
-      setSuggestionsState([]);
-      setPopoverOpenState(false);
-    }
-  };
-
 
   const handleSearchSubmit = (data: SearchFormValues) => {
     setIsLoading(true);
@@ -125,7 +109,7 @@ export default function SearchRoutesPage() {
              const searchDate = new Date(0,0,0,sH,sM);
              const routeDate = new Date(0,0,0,rH,rM);
              const diffMinutes = Math.abs((searchDate.getTime() - routeDate.getTime()) / 60000);
-             if (diffMinutes > 60) { // Allow +/- 1 hour
+             if (diffMinutes > 60) { 
                  matches = false;
              }
           }
@@ -159,10 +143,7 @@ export default function SearchRoutesPage() {
         description: "The rider has been notified. Check 'My Rides' for updates.",
         variant: "default",
       });
-      // Update allRoutes to reflect the change, so subsequent filters are correct
       setAllRoutes(prevAllRoutes => prevAllRoutes.map(r => r.id === routeId ? updatedRoute : r));
-      // Re-filter search results based on the latest allRoutes and current form values
-      // Or, more simply, just remove the booked one from current searchResults if its status is no longer 'available'
       setSearchResults(prevResults => prevResults.filter(r => r.id !== routeId || updatedRoute.status === 'available'));
     } else {
       toast({
@@ -224,9 +205,25 @@ export default function SearchRoutesPage() {
                           <FormControl>
                             <Input
                               placeholder="e.g., Google Office"
-                              {...field}
-                              onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setDestinationSuggestions, setIsDestinationPopoverOpen)}
+                              value={field.value}
+                              name={field.name}
+                              ref={field.ref}
                               onBlur={field.onBlur}
+                              onChange={(e) => {
+                                const currentValue = e.target.value;
+                                field.onChange(currentValue);
+
+                                if (currentValue.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc =>
+                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                  );
+                                  setDestinationSuggestions(filtered);
+                                  setIsDestinationPopoverOpen(filtered.length > 0);
+                                } else {
+                                  setDestinationSuggestions([]);
+                                  setIsDestinationPopoverOpen(false);
+                                }
+                              }}
                               className="font-body text-base"
                               autoComplete="off"
                             />
@@ -239,7 +236,7 @@ export default function SearchRoutesPage() {
                                 <div
                                   key={index}
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onMouseDown={(e) => { // Use onMouseDown
+                                  onMouseDown={(e) => { 
                                     e.preventDefault();
                                     field.onChange(suggestion);
                                     setIsDestinationPopoverOpen(false);
@@ -268,9 +265,25 @@ export default function SearchRoutesPage() {
                           <FormControl>
                             <Input
                               placeholder="e.g., KR Puram"
-                              {...field}
-                              onChange={(e) => handleLocationInputChange(e.target.value, field.onChange, setStartPointSuggestions, setIsStartPointPopoverOpen)}
+                              value={field.value}
+                              name={field.name}
+                              ref={field.ref}
                               onBlur={field.onBlur}
+                              onChange={(e) => {
+                                const currentValue = e.target.value;
+                                field.onChange(currentValue);
+
+                                if (currentValue.length > 0) {
+                                  const filtered = allKnownLocations.filter(loc =>
+                                    loc.toLowerCase().includes(currentValue.toLowerCase()) && loc.toLowerCase() !== currentValue.toLowerCase()
+                                  );
+                                  setStartPointSuggestions(filtered);
+                                  setIsStartPointPopoverOpen(filtered.length > 0);
+                                } else {
+                                  setStartPointSuggestions([]);
+                                  setIsStartPointPopoverOpen(false);
+                                }
+                              }}
                               className="font-body text-base"
                               autoComplete="off"
                             />
@@ -283,7 +296,7 @@ export default function SearchRoutesPage() {
                                 <div
                                   key={index}
                                   className="p-2 hover:bg-accent cursor-pointer text-sm"
-                                  onMouseDown={(e) => { // Use onMouseDown
+                                  onMouseDown={(e) => { 
                                     e.preventDefault();
                                     field.onChange(suggestion);
                                     setIsStartPointPopoverOpen(false);
@@ -461,5 +474,3 @@ export default function SearchRoutesPage() {
     </div>
   );
 }
-
-    
