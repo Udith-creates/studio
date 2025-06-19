@@ -61,18 +61,21 @@ export default function SearchRoutesPage() {
   function onSubmit(data: SearchRouteFormValues) {
     console.log("Search criteria:", data);
     const allCurrentRoutes = getRoutes();
+    console.log('All current routes from store:', allCurrentRoutes);
     
     const results = allCurrentRoutes.filter(route => {
       const destinationMatch = route.destination.toLowerCase().includes(data.destination.toLowerCase());
       const timingMatch = !data.timing || route.timing === data.timing;
       const daysMatch = !data.days || data.days.length === 0 || data.days.every(day => route.days.includes(day));
       const statusMatch = route.status === 'available';
+      // console.log(`Route: ${route.id}, Dest: ${route.destination}, Status: ${route.status}, Matches: D=${destinationMatch}, T=${timingMatch}, DYS=${daysMatch}, S=${statusMatch}`);
       return destinationMatch && timingMatch && daysMatch && statusMatch;
     });
 
     setSearchResults(results);
-    setSearched(true);
-    if (results.length === 0 && data.destination) { // Only toast if a search was actually performed
+    setSearched(true); // Mark that a search has been attempted
+    
+    if (results.length === 0 && data.destination) { 
       toast({
         title: "No Available Routes Found",
         description: "Try adjusting your search criteria or check back later.",
@@ -99,6 +102,7 @@ export default function SearchRoutesPage() {
       return;
     }
 
+    // Attempt to update the route status to 'requested' (which might also make it 'full')
     const updatedRoute = updateRouteStatus(routeId, 'requested');
     
     if (updatedRoute) {
@@ -107,12 +111,12 @@ export default function SearchRoutesPage() {
           description: "The rider has been notified. Check 'My Rides' for updates.",
           variant: "default",
         });
-        // Re-filter search results to only show currently available routes
-        // This will make the just-booked route disappear from the list if it's no longer 'available'
+        // Re-run the current search to refresh the list; the booked route should no longer be 'available'.
         const currentSearchCriteria = form.getValues();
         onSubmit(currentSearchCriteria);
 
     } else {
+        // This case might happen if updateRouteStatus returned undefined (e.g., concurrent modification, though unlikely here)
         toast({
             title: "Booking Error",
             description: "Could not process your ride request. Please try again.",
@@ -247,6 +251,7 @@ export default function SearchRoutesPage() {
         </CardContent>
       </Card>
 
+      {/* This section only renders after a search has been attempted (searched is true) */}
       {searched && (
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:w-1/3 mb-4">
@@ -268,6 +273,7 @@ export default function SearchRoutesPage() {
                 ))}
               </div>
             ) : (
+              // This card shows if searched is true AND searchResults is empty
               <Card className="text-center py-10 rounded-lg">
                 <CardContent>
                   <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
