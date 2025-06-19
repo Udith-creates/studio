@@ -22,7 +22,7 @@ export default function BadgeDisplay({ badge }: BadgeDisplayProps) {
             width={badge.earned ? 60 : 50} 
             height={badge.earned ? 60 : 50}
             className={`rounded-full ${badge.earned ? '' : 'opacity-60 grayscale'}`}
-            data-ai-hint="badge icon"
+            data-ai-hint={badge.earned ? "achievement award" : "badge icon"}
           />
           {badge.earned && (
             <CheckCircle className="absolute -bottom-1 -right-1 h-7 w-7 text-green-500 bg-card rounded-full p-0.5" />

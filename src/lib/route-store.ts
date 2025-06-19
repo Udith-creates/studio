@@ -1,70 +1,86 @@
 
 import type { Route, User } from '@/types';
+import { getUserById } from './user-store'; // Import a way to get users
 
-// Mock current user for simplicity in who is posting routes
-const mockRiderUser: User = {
+// Use a user from the user-store as the default poster
+const defaultPosterUser = getUserById("userPoster001");
+
+const mockRiderUser: User = defaultPosterUser || {
   id: "userPoster001",
-  name: "Current User (Poster)",
+  name: "Route Poster (Default)",
+  email: "poster@example.com", // Added email
   role: 'rider',
-  avatarUrl: "https://placehold.co/100x100.png?text=CU",
+  avatarUrl: "https://placehold.co/100x100.png?text=RP",
 };
 
-let routeIdCounter = 100; // Start from a higher number to avoid collision with initial mocks
+let routeIdCounter = 100;
 
 const initialRoutes: Route[] = [
-  { id: "1", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: { id: "r1", name: "Priya", role: 'rider' }, availableSeats: 2, cost: 150.00, status: 'available' },
-  { id: "2", startPoint: "Tin Factory", destination: "Google Office", timing: "08:30", days: ["mon", "tue", "wed", "thu", "fri"], rider: { id: "r2", name: "Rahul", role: 'rider' }, availableSeats: 0, cost: 120.00, status: 'full' },
-  { id: "3", startPoint: "Gopalan Mall", destination: "Google Office", timing: "09:00", days: ["sat", "sun"], rider: { id: "r3", name: "Suresh", role: 'rider' }, availableSeats: 3, cost: 100.00, status: 'available' },
-  { id: "4", startPoint: "KR Puram", destination: "Tin Factory", timing: "07:45", days: ["mon", "wed"], rider: { id: "r4", name: "Deepa", role: 'rider' }, availableSeats: 1, cost: 80.00, status: 'confirmed' },
+  { id: "1", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: getUserById("user2") || mockRiderUser, availableSeats: 2, cost: 150.00, status: 'available' },
+  { id: "2", startPoint: "Tin Factory", destination: "Google Office", timing: "08:30", days: ["mon", "tue", "wed", "thu", "fri"], rider: getUserById("user3") || mockRiderUser, availableSeats: 0, cost: 120.00, status: 'full' },
+  { id: "3", startPoint: "Gopalan Mall", destination: "Google Office", timing: "09:00", days: ["sat", "sun"], rider: getUserById("user2") || mockRiderUser, availableSeats: 3, cost: 100.00, status: 'available' },
+  { id: "4", startPoint: "KR Puram", destination: "Tin Factory", timing: "07:45", days: ["mon", "wed"], rider: getUserById("user3") || mockRiderUser, availableSeats: 1, cost: 80.00, status: 'confirmed' },
+  // Adding routes with specific locations for testing
+  { id: "fav1_from_store", startPoint: "KR Puram", destination: "Google Office", timing: "09:30", days: ["tue", "thu"], rider: getUserById("user2") || mockRiderUser, availableSeats: 1, cost: 140.00, status: 'available' },
+  { id: "fav2_from_store", startPoint: "Tin Factory", destination: "Gopalan Mall", timing: "07:00", days: ["mon", "wed", "fri"], rider: getUserById("user3") || mockRiderUser, availableSeats: 3, cost: 90.00, status: 'available' },
 ];
 
-const routes: Route[] = [...initialRoutes]; // Initialize with some mock data
+const routes: Route[] = [...initialRoutes];
 
 export const getRoutes = (): Route[] => {
-  return [...routes]; // Return a copy to prevent direct modification
+  return routes.map(route => ({ ...route }));
 };
 
 export const addRoute = (newRouteData: Omit<Route, 'id' | 'rider' | 'status' | 'cost'> & { cost?: number }): Route => {
+  // In a real app, the rider would be the currently logged-in user.
+  // For now, we'll continue using a mockRiderUser or a specific one from store.
   const route: Route = {
-    ...newRouteData, // days should be in short lowercase format e.g. ["mon", "tue"]
+    ...newRouteData,
     id: `route-${routeIdCounter++}`,
-    rider: mockRiderUser,
+    rider: mockRiderUser, 
     status: 'available',
     cost: newRouteData.cost 
   };
   routes.push(route);
-  return route;
+  return { ...route };
 };
 
 export const getRouteById = (id: string): Route | undefined => {
-  return routes.find(route => route.id === id);
+  const route = routes.find(route => route.id === id);
+  return route ? { ...route } : undefined;
 };
 
 export const updateRouteStatus = (id: string, newStatus: Route['status']): Route | undefined => {
   const routeIndex = routes.findIndex(route => route.id === id);
   if (routeIndex !== -1) {
-    const route = routes[routeIndex];
+    const route = { ...routes[routeIndex] }; // Work with a copy
     
-    // Store original status before potentially changing it to 'full'
-    const requestedStatus = newStatus; 
+    const originalStatus = route.status;
 
     if (newStatus === 'requested') {
-      if (route.availableSeats > 0) {
+      if (route.availableSeats > 0 && route.status === 'available') {
         route.availableSeats -= 1;
-        if (route.availableSeats === 0 && route.status !== 'cancelled') {
-           route.status = 'full'; // Auto-set to full if no more seats after request
-        } else {
-            route.status = requestedStatus; // Set to 'requested' if seats still available
-        }
+        route.status = 'requested'; // Set to 'requested'
+        // If seats become 0 after this request, it will be handled by the ride offerer upon acceptance.
+        // For now, search results will still show it as 'requested'.
+        // If they want to auto-move to 'full' on request with 0 seats left:
+        // if (route.availableSeats === 0) {
+        //   route.status = 'full';
+        // }
       } else {
-        // If somehow requested with 0 seats, ensure status reflects it's full.
-        route.status = 'full';
+        // Cannot request if not available or no seats
+        console.warn(`Cannot request ride ${id}: status is ${route.status} or seats are ${route.availableSeats}`);
+        return undefined; // Indicate no change or invalid operation
       }
+    } else if (newStatus === 'confirmed' || newStatus === 'full') {
+      // This might be an action by the ride offerer
+      route.status = newStatus;
     } else {
         route.status = newStatus;
     }
     
-    return {...route}; // Return a copy of the updated route
+    routes[routeIndex] = route; // Update the store
+    return { ...route }; 
   }
   return undefined;
 };

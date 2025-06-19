@@ -13,6 +13,8 @@ export interface Route {
 
 export interface User {
   id: string;
+  email: string; // Added for login
+  password?: string; // Added for login, optional if not always needed in every context
   name: string;
   avatarUrl?: string; // URL to user's avatar
   role: 'rider' | 'buddy';

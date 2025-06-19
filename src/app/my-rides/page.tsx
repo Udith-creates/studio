@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,63 +10,93 @@ import { useToast } from "@/hooks/use-toast";
 import { BikeIcon } from "@/components/icons/bike-icon";
 import { UserIcon } from "@/components/icons/user-icon";
 import { AlertTriangle, Check, ListChecks, ThumbsDown, ThumbsUp, X, MapPin } from "lucide-react";
-import RouteCard from "@/components/features/routes/route-card"; // Re-use for consistency
+import RouteCard from "@/components/features/routes/route-card";
 import Link from "next/link";
+import { getUserById } from "@/lib/user-store"; // To get user details
 
-// Mock current user
-const currentUserId = "user123";
-const currentUser: User = { id: currentUserId, name: "Arjun Mehra", role: 'buddy' }; // Role can change
-
-// Mock data
-const mockOfferedRidesInitial: Route[] = [
-  { id: "offered1", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: currentUser, availableSeats: 2, cost: 150.00, status: 'available' },
-  { id: "offered2", startPoint: "My Home (Tin Factory)", destination: "Gopalan Mall", timing: "18:00", days: ["tue", "thu"], rider: currentUser, availableSeats: 1, cost: 100.00, status: 'confirmed' },
-];
-
-const mockBookedRidesInitial: Booking[] = [
-  { id: "booked1", routeId: "routeX_kr_google", buddy: currentUser, rider: { id: "r1", name: "Priya", role: 'rider' }, status: 'confirmed', requestedAt: new Date(), updatedAt: new Date() },
-  { id: "booked2", routeId: "routeY_tin_gopalan", buddy: currentUser, rider: { id: "r2", name: "Rahul", role: 'rider' }, status: 'pending', requestedAt: new Date() },
-];
-
-const mockRoutesForBookings: Record<string, Route> = {
-  routeX_kr_google: { id: "routeX_kr_google", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed"], rider: { id: "r1", name: "Priya", role: 'rider' }, availableSeats: 0, cost: 150.00, status: 'confirmed'},
-  routeY_tin_gopalan: { id: "routeY_tin_gopalan", startPoint: "Tin Factory", destination: "Gopalan Mall", timing: "14:00", days: ["sat"], rider: { id: "r2", name: "Rahul", role: 'rider' }, availableSeats: 1, cost: 90.00, status: 'available' /* but pending for me */ },
-};
-
+// Simulate current user - in a real app, this would come from an auth context
+// Let's assume user 'user1' (Arjun Mehra) is logged in for this page's context.
+const currentUserId = "user1"; 
 
 export default function MyRidesPage() {
   const { toast } = useToast();
-  const [offeredRides, setOfferedRides] = useState<Route[]>(mockOfferedRidesInitial);
-  const [bookedRides, setBookedRides] = useState<Booking[]>(mockBookedRidesInitial);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [offeredRides, setOfferedRides] = useState<Route[]>([]);
+  const [bookedRides, setBookedRides] = useState<Booking[]>([]);
+  const [rideRequests, setRideRequests] = useState<Booking[]>([]);
 
-  // Mock incoming requests for rides I'm offering
-  const [rideRequests, setRideRequests] = useState<Booking[]>([
-    { id: "req1", routeId: "offered1", buddy: { id: "buddy1", name: "Sunita", role: 'buddy'}, rider: currentUser, status: 'pending', requestedAt: new Date() },
-  ]);
+  // Mock data for routes potentially related to bookings - in a real app, this would be fetched or from route-store
+  const [mockRoutesForBookings, setMockRoutesForBookings] = useState<Record<string, Route>>({});
+
+
+  useEffect(() => {
+    const user = getUserById(currentUserId);
+    setCurrentUser(user);
+
+    if (user) {
+      // Simulate fetching data relevant to the current user
+      const initialOfferedRides: Route[] = [
+        // Arjun offers one ride
+        { id: "offered1_arjun", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed", "fri"], rider: user, availableSeats: 2, cost: 150.00, status: 'available' },
+        // Priya offers one ride
+        { id: "offered_priya_gopalan", startPoint: "My Home (Tin Factory)", destination: "Gopalan Mall", timing: "18:00", days: ["tue", "thu"], rider: getUserById("user2")!, availableSeats: 1, cost: 100.00, status: 'confirmed' },
+      ];
+      setOfferedRides(initialOfferedRides.filter(r => r.rider.id === user.id)); // Show only Arjun's offered rides if Arjun is logged in
+
+      const initialBookedRides: Booking[] = [
+        // Arjun booked a ride with Priya
+        { id: "booked1_arjun_with_priya", routeId: "routeX_kr_google_priya", buddy: user, rider: getUserById("user2")!, status: 'confirmed', requestedAt: new Date(), updatedAt: new Date() },
+        // Arjun booked a ride with Vikram (pending)
+        { id: "booked2_arjun_with_vikram", routeId: "routeY_tin_google_vikram", buddy: user, rider: getUserById("user3")!, status: 'pending', requestedAt: new Date() },
+      ];
+      setBookedRides(initialBookedRides.filter(b => b.buddy.id === user.id)); // Show only Arjun's booked rides if Arjun is logged in
+
+      const routesForBookingsData: Record<string, Route> = {
+        routeX_kr_google_priya: { id: "routeX_kr_google_priya", startPoint: "KR Puram", destination: "Google Office", timing: "08:00", days: ["mon", "wed"], rider: getUserById("user2")!, availableSeats: 0, cost: 150.00, status: 'confirmed'},
+        routeY_tin_google_vikram: { id: "routeY_tin_google_vikram", startPoint: "Tin Factory", destination: "Google Office", timing: "14:00", days: ["sat"], rider: getUserById("user3")!, availableSeats: 1, cost: 90.00, status: 'available' },
+      };
+      setMockRoutesForBookings(routesForBookingsData);
+      
+      // Simulate incoming requests for rides Arjun is offering
+      const initialRideRequests: Booking[] = [
+        { id: "req1_for_arjun", routeId: "offered1_arjun", buddy: getUserById("user2")!, rider: user, status: 'pending', requestedAt: new Date() },
+      ];
+      // Filter requests for rides offered by the current user
+      setRideRequests(initialRideRequests.filter(req => req.rider.id === user.id));
+    }
+  }, [currentUserId]);
+
 
   const handleRequestAction = (requestId: string, action: 'accept' | 'decline') => {
     const request = rideRequests.find(req => req.id === requestId);
-    if (!request) return;
+    if (!request || !currentUser) return;
 
     setRideRequests(prev => prev.filter(req => req.id !== requestId));
     
     if (action === 'accept') {
         setOfferedRides(prevOffered => prevOffered.map(or => {
             if (or.id === request.routeId) {
-                const newSeats = or.availableSeats -1;
+                const newSeats = Math.max(0, or.availableSeats - 1);
                 let newStatus: Route['status'] = 'confirmed';
                 if (newSeats <= 0) {
                     newStatus = 'full';
                 }
+                // Here, you'd also update the booking status for the buddy
+                // and potentially add them to a list of confirmed buddies for this ride.
                 return {...or, availableSeats: newSeats, status: newStatus };
             }
             return or;
         }));
+         toast({
+          title: `Request Accepted!`,
+          description: `${request.buddy.name} will join your ride.`,
+        });
+    } else {
+        toast({
+          title: `Request Declined`,
+          description: `The buddy ${request.buddy.name} has been notified.`,
+        });
     }
-    toast({
-      title: `Request ${action === 'accept' ? 'Accepted' : 'Declined'}`,
-      description: `The buddy ${request.buddy.name} has been notified.`,
-    });
   };
 
   const cancelBooking = (bookingId: string) => {
@@ -76,16 +106,25 @@ export default function MyRidesPage() {
 
   const cancelOfferedRide = (routeId: string) => {
     setOfferedRides(prev => prev.map(r => r.id === routeId ? {...r, status: 'cancelled'} : r));
-    // Also cancel any pending requests for this ride if needed (not implemented here)
+    // Also cancel any pending requests for this ride if needed
+    setRideRequests(prev => prev.filter(req => req.routeId !== routeId));
     toast({ title: "Ride Cancelled", description: "Your offered ride has been cancelled." });
   }
 
+  if (!currentUser) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
+        <p className="text-xl font-body text-muted-foreground">Loading your rides...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex items-center gap-3 mb-6">
         <ListChecks className="h-10 w-10 text-primary" />
-        <h1 className="text-4xl font-headline font-semibold">My Rides</h1>
+        <h1 className="text-4xl font-headline font-semibold">My Rides ({currentUser.name})</h1>
       </div>
 
       <Tabs defaultValue="offered" className="w-full">
@@ -120,7 +159,7 @@ export default function MyRidesPage() {
                   })}
                 </ul>
               ) : (
-                <p className="text-muted-foreground font-body">No pending requests.</p>
+                <p className="text-muted-foreground font-body">No pending requests for your offered rides.</p>
               )}
             </CardContent>
           </Card>
@@ -132,12 +171,12 @@ export default function MyRidesPage() {
                 <RouteCard 
                   key={route.id} 
                   route={route} 
-                  onViewDetails={() => toast({title: "Viewing details for your offered ride."})} 
+                  onViewDetails={() => toast({title: `Viewing details for your offered ride to ${route.destination}.`})} 
                 >
                   <div className="w-full space-y-2 mt-2">
                     {(route.status === 'confirmed' || route.status === 'full') && route.status !== 'completed' && route.status !== 'cancelled' && (
-                        <Link href={`/my-rides/${route.id}/track`}>
-                            <Button variant="outline" size="sm" className="w-full font-headline">
+                        <Link href={`/my-rides/${route.id}/track`} legacyBehavior passHref>
+                            <Button as="a" variant="outline" size="sm" className="w-full font-headline">
                             <MapPin className="mr-2 h-4 w-4"/> Track Ride
                             </Button>
                         </Link>
@@ -162,23 +201,34 @@ export default function MyRidesPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {bookedRides.map(booking => {
                 const routeDetails = mockRoutesForBookings[booking.routeId];
-                if (!routeDetails) return null; 
+                if (!routeDetails) {
+                    console.warn(`Route details not found for booking ID ${booking.routeId}`);
+                    return (
+                        <Card key={booking.id} className="p-4 border-destructive">
+                            <CardTitle className="text-destructive">Error: Route details missing</CardTitle>
+                            <CardDescription>Could not load details for booking ID {booking.id}.</CardDescription>
+                        </Card>
+                    );
+                }
                 
                 const displayRoute: Route = {
                     ...routeDetails,
-                    status: booking.status === 'pending' ? 'requested' : booking.status === 'accepted' ? 'confirmed' : booking.status
+                    // Ensure the status on the card reflects the booking status for the current user
+                    status: booking.status === 'pending' ? 'requested' : 
+                            booking.status === 'accepted' ? 'confirmed' : // Assuming 'accepted' means 'confirmed' for display
+                            booking.status
                 };
 
                 return (
                   <RouteCard 
                     key={booking.id} 
                     route={displayRoute} 
-                    onViewDetails={() => toast({title: `Viewing details for ride with ${booking.rider.name}`})}
+                    onViewDetails={() => toast({title: `Viewing details for ride with ${booking.rider.name} to ${displayRoute.destination}.`})}
                   >
                     <div className="w-full space-y-2 mt-2">
-                        {booking.status === 'confirmed' && (
-                           <Link href={`/my-rides/${booking.id}/track`}>
-                             <Button variant="outline" size="sm" className="w-full font-headline">
+                        {booking.status === 'confirmed' && ( // Only show track if booking is confirmed
+                           <Link href={`/my-rides/${booking.id}/track`} legacyBehavior passHref>
+                             <Button as="a" variant="outline" size="sm" className="w-full font-headline">
                                <MapPin className="mr-2 h-4 w-4"/> Track Ride
                              </Button>
                            </Link>
@@ -187,6 +237,9 @@ export default function MyRidesPage() {
                            <Button variant="destructive" size="sm" onClick={() => cancelBooking(booking.id)} className="w-full font-headline">
                             <X className="mr-2 h-4 w-4"/> Cancel Booking
                            </Button>
+                        )}
+                         {booking.status === 'cancelled' && (
+                            <p className="text-sm text-center text-destructive-foreground bg-destructive p-2 rounded-md font-body">Booking Cancelled</p>
                         )}
                     </div>
                   </RouteCard>
@@ -201,3 +254,6 @@ export default function MyRidesPage() {
     </div>
   );
 }
+
+// Added Loader2 for loading state
+import { Loader2 } from "lucide-react";

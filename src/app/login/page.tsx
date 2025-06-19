@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authenticateUser } from "@/lib/user-store";
 
 export default function LoginPage() {
   const { toast } = useToast();
@@ -22,23 +23,25 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const authenticatedUser = authenticateUser(email, password);
 
     setIsLoading(false);
 
-    // This is a simulated login. Replace with actual authentication logic in a real app.
-    if (email === "test@example.com" && password === "password") {
+    if (authenticatedUser) {
       toast({
-        title: "Login Successful (Simulated)",
-        description: "Welcome back to BroRide! Redirecting...",
+        title: "Login Successful!",
+        description: `Welcome back, ${authenticatedUser.name}! Redirecting...`,
         variant: "default",
       });
-      router.push("/"); // Redirect to homepage or dashboard
+      // Redirect to profile page with userId, or to dashboard/homepage
+      router.push(`/profile?userId=${authenticatedUser.id}`);
     } else {
       toast({
-        title: "Login Failed (Simulated)",
-        description: "Invalid email or password. Please use test@example.com and 'password'.",
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
         variant: "destructive",
       });
       setPassword(""); // Clear password field on failure
@@ -52,7 +55,7 @@ export default function LoginPage() {
           <LogIn className="mx-auto h-12 w-12 text-primary mb-4" />
           <CardTitle className="text-3xl font-headline">Login to BroRide</CardTitle>
           <CardDescription className="font-body text-base">
-            Access your account to manage your rides. (Simulated Login)
+            Access your account to manage your rides.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -62,7 +65,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="test@example.com"
+                placeholder="e.g., arjun@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -75,7 +78,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -103,7 +106,7 @@ export default function LoginPage() {
             </Link>
           </p>
            <p className="mt-4 text-center text-xs text-muted-foreground font-body">
-            Use email: <strong>test@example.com</strong> and password: <strong>password</strong> for this demo.
+            Hint: Try <strong>arjun@example.com</strong> / <strong>password123</strong> or <strong>priya@example.com</strong> / <strong>password456</strong>.
           </p>
         </CardContent>
       </Card>
