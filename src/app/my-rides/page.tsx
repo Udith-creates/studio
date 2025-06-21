@@ -13,6 +13,7 @@ import { AlertTriangle, Check, ListChecks, ThumbsDown, ThumbsUp, X, MapPin } fro
 import RouteCard from "@/components/features/routes/route-card";
 import Link from "next/link";
 import { getUserById } from "@/lib/user-store"; // To get user details
+import { Loader2 } from "lucide-react";
 
 // Simulate current user - in a real app, this would come from an auth context
 // Let's assume user 'user1' (Arjun Mehra) is logged in for this page's context.
@@ -254,6 +255,3 @@ export default function MyRidesPage() {
     </div>
   );
 }
-
-// Added Loader2 for loading state
-import { Loader2 } from "lucide-react";
