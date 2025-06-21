@@ -83,26 +83,17 @@ export default function HomePage() {
         </div>
       </section>
       
-      <section className="py-16 bg-secondary/30 rounded-xl">
+      <section className="py-16 bg-secondary/30 rounded-xl text-center">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="md:w-1/2">
-              <Image 
-                src="https://storage.googleapis.com/aip-dev-images-us-central1/project-1750333954490/broride-1.jpeg" 
-                alt="Happy couple riding a scooter in a city, promoting the BroRide community" 
-                width={600} 
-                height={400} 
-                className="rounded-lg shadow-xl"
-              />
-            </div>
-            <div className="md:w-1/2">
+          <div className="flex flex-col items-center gap-8">
+            <div className="w-full">
               <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-6">
                 Join the BroRide Community
               </h2>
-              <p className="text-lg font-body mb-4">
+              <p className="text-lg font-body mb-4 max-w-3xl mx-auto">
                 BroRide is more than just a carpooling app. It's a community of like-minded individuals committed to making transportation more efficient, affordable, and environmentally friendly.
               </p>
-              <p className="text-lg font-body mb-8">
+              <p className="text-lg font-body mb-8 max-w-3xl mx-auto">
                 By sharing rides, you contribute to reducing traffic congestion, lowering carbon emissions, and building a more connected community.
               </p>
               <Button asChild size="lg" className="font-headline bg-primary text-primary-foreground hover:bg-primary/90">
