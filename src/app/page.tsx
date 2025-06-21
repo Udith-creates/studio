@@ -88,12 +88,11 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="md:w-1/2">
               <Image 
-                src="https://placehold.co/600x400.png" 
-                alt="Community of riders" 
+                src="https://storage.googleapis.com/aip-dev-images-us-central1/project-1750333954490/broride-1.jpeg" 
+                alt="Happy couple riding a scooter in a city, promoting the BroRide community" 
                 width={600} 
                 height={400} 
                 className="rounded-lg shadow-xl"
-                data-ai-hint="commute people"
               />
             </div>
             <div className="md:w-1/2">
