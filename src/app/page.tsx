@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Search, PlusCircle, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { BikeIcon } from "@/components/icons/bike-icon";
@@ -24,12 +24,12 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-headline shadow-lg transform hover:scale-105 transition-transform duration-200">
               <Link href="/search-routes">
-                Find a Ride <Search className="ml-2 h-5 w-5" />
+                Find a Ride <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="border-accent text-accent hover:bg-accent/10 font-headline shadow-lg transform hover:scale-105 transition-transform duration-200">
               <Link href="/post-route">
-                Offer a Ride <PlusCircle className="ml-2 h-5 w-5" />
+                Offer a Ride <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>
@@ -41,40 +41,55 @@ export default function HomePage() {
           How BroRide Works
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
-            <CardHeader className="items-center">
-              <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <PlusCircle className="h-10 w-10 text-primary" />
-              </div>
-              <CardTitle className="font-headline text-2xl">Post Your Route</CardTitle>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+            <CardHeader className="p-0">
+               <Image
+                  src="https://placehold.co/600x400.png"
+                  alt="A person posting a route on their phone"
+                  width={600}
+                  height={400}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  data-ai-hint="map phone"
+                />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 text-center flex-grow flex flex-col">
+              <CardTitle className="font-headline text-2xl mb-2">Post Your Route</CardTitle>
               <CardDescription className="text-center font-body text-lg">
                 Riders can easily post their daily routes, including start point, destination, timing, and days of the week.
               </CardDescription>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
-            <CardHeader className="items-center">
-              <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Search className="h-10 w-10 text-primary" />
-              </div>
-              <CardTitle className="font-headline text-2xl">Find a Match</CardTitle>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+            <CardHeader className="p-0">
+               <Image
+                  src="https://placehold.co/600x400.png"
+                  alt="Friends carpooling together"
+                  width={600}
+                  height={400}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  data-ai-hint="carpooling friends"
+                />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 text-center flex-grow flex flex-col">
+              <CardTitle className="font-headline text-2xl mb-2">Find a Match</CardTitle>
               <CardDescription className="text-center font-body text-lg">
                 Buddies can search for routes based on their destination, preferred timing, and days, with results shown on a map and list.
               </CardDescription>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
-            <CardHeader className="items-center">
-              <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <CheckCircle className="h-10 w-10 text-primary" />
-              </div>
-              <CardTitle className="font-headline text-2xl">Book & Ride</CardTitle>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
+            <CardHeader className="p-0">
+               <Image
+                  src="https://placehold.co/600x400.png"
+                  alt="Securely booking a ride online"
+                  width={600}
+                  height={400}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                  data-ai-hint="secure payment"
+                />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 text-center flex-grow flex flex-col">
+              <CardTitle className="font-headline text-2xl mb-2">Book & Ride</CardTitle>
               <CardDescription className="text-center font-body text-lg">
                 Securely book your ride, share costs transparently, and enjoy a greener commute together.
               </CardDescription>
