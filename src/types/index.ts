@@ -38,6 +38,7 @@ export interface Badge {
   earned: boolean;
   progress?: number; // 0-100 for progress towards earning
   milestone?: string; // e.g., "Complete 10 rides"
+  dataAiHint?: string;
 }
 
 export interface PaymentRecord {

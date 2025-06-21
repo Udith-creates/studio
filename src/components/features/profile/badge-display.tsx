@@ -17,12 +17,12 @@ export default function BadgeDisplay({ badge }: BadgeDisplayProps) {
       <CardHeader className="p-4 flex flex-col items-center text-center bg-muted/20">
         <div className={`relative w-20 h-20 mb-3 rounded-full flex items-center justify-center ${badge.earned ? 'bg-accent/20' : 'bg-secondary'}`}>
           <Image 
-            src={badge.iconUrl || `https://placehold.co/80x80.png?text=${badge.name.charAt(0)}`}
-            alt={`${badge.name} badge`}
+            src={badge.iconUrl || `https://placehold.co/80x80.png`}
+            alt={`${badge.name} badge icon`}
             width={badge.earned ? 60 : 50} 
             height={badge.earned ? 60 : 50}
             className={`rounded-full ${badge.earned ? '' : 'opacity-60 grayscale'}`}
-            data-ai-hint={badge.earned ? "achievement award" : "badge icon"}
+            data-ai-hint={badge.dataAiHint || (badge.earned ? "achievement award" : "badge icon")}
           />
           {badge.earned && (
             <CheckCircle className="absolute -bottom-1 -right-1 h-7 w-7 text-green-500 bg-card rounded-full p-0.5" />

@@ -8,7 +8,7 @@ let users: User[] = [
     email: "arjun@example.com", 
     password: "password123", 
     name: "Arjun Mehra", 
-    avatarUrl: "https://placehold.co/100x100/1DA1F2/FFFFFF.png?text=AM", 
+    avatarUrl: "https://placehold.co/100x100.png", 
     role: 'buddy' 
   },
   { 
@@ -16,7 +16,7 @@ let users: User[] = [
     email: "priya@example.com", 
     password: "password456", 
     name: "Priya Sharma", 
-    avatarUrl: "https://placehold.co/100x100/7CFC00/000000.png?text=PS", 
+    avatarUrl: "https://placehold.co/100x100.png", 
     role: 'rider' 
   },
   { 
@@ -24,7 +24,7 @@ let users: User[] = [
     email: "vikram@example.com", 
     password: "password789", 
     name: "Vikram Singh", 
-    avatarUrl: "https://placehold.co/100x100/FFD700/000000.png?text=VS", 
+    avatarUrl: "https://placehold.co/100x100.png", 
     role: 'rider' 
   },
    { 
@@ -32,7 +32,7 @@ let users: User[] = [
     email: "poster@example.com", 
     password: "securepassword", 
     name: "Route Poster", 
-    avatarUrl: "https://placehold.co/100x100.png?text=RP", 
+    avatarUrl: "https://placehold.co/100x100.png", 
     role: 'rider' 
   },
   { 

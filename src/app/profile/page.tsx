@@ -18,10 +18,10 @@ import { getUserById, updateUser } from "@/lib/user-store"; // Import user store
 
 // Mock data for badges and payment history (user specific data will be loaded)
 const mockBadges: BadgeType[] = [
-  { id: "b1", name: "First Ride Completed", description: "Awarded for completing your very first ride as a rider or buddy.", iconUrl: "https://placehold.co/80x80/1DA1F2/FFFFFF.png?text=1st&ai-hint=medal award", earned: true },
-  { id: "b2", name: "Eco Warrior", description: "Awarded for sharing 100km of rides.", iconUrl: "https://placehold.co/80x80/7CFC00/000000.png?text=ECO&ai-hint=leaf tree", earned: true, progress: 100, milestone: "Share 100km" },
-  { id: "b3", name: "Community Star", description: "Awarded for offering 10 rides.", iconUrl: "https://placehold.co/80x80/FFD700/000000.png?text=STAR&ai-hint=star trophy", earned: false, progress: 60, milestone: "Offer 10 rides" },
-  { id: "b4", name: "Early Bird", description: "Complete 5 rides before 7 AM.", iconUrl: "https://placehold.co/80x80/FFA500/FFFFFF.png?text=BIRD&ai-hint=sun bird", earned: false, progress: 20, milestone: "5 rides before 7 AM" },
+  { id: "b1", name: "First Ride Completed", description: "Awarded for completing your very first ride as a rider or buddy.", iconUrl: "https://placehold.co/80x80.png", dataAiHint: "medal award", earned: true },
+  { id: "b2", name: "Eco Warrior", description: "Awarded for sharing 100km of rides.", iconUrl: "https://placehold.co/80x80.png", dataAiHint: "leaf tree", earned: true, progress: 100, milestone: "Share 100km" },
+  { id: "b3", name: "Community Star", description: "Awarded for offering 10 rides.", iconUrl: "https://placehold.co/80x80.png", dataAiHint: "star trophy", earned: false, progress: 60, milestone: "Offer 10 rides" },
+  { id: "b4", name: "Early Bird", description: "Complete 5 rides before 7 AM.", iconUrl: "https://placehold.co/80x80.png", dataAiHint: "sun bird", earned: false, progress: 20, milestone: "5 rides before 7 AM" },
 ];
 
 const mockPaymentHistoryBase: Omit<PaymentRecord, 'payer' | 'payee'>[] = [
