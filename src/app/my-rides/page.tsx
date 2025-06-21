@@ -175,11 +175,11 @@ export default function MyRidesPage() {
                 >
                   <div className="w-full space-y-2 mt-2">
                     {(route.status === 'confirmed' || route.status === 'full') && route.status !== 'completed' && route.status !== 'cancelled' && (
-                        <Link href={`/my-rides/${route.id}/track`} legacyBehavior passHref>
-                            <Button as="a" variant="outline" size="sm" className="w-full font-headline">
-                            <MapPin className="mr-2 h-4 w-4"/> Track Ride
-                            </Button>
-                        </Link>
+                        <Button asChild variant="outline" size="sm" className="w-full font-headline">
+                            <Link href={`/my-rides/${route.id}/track`}>
+                                <MapPin className="mr-2 h-4 w-4"/> Track Ride
+                            </Link>
+                        </Button>
                     )}
                     {route.status !== 'cancelled' && route.status !== 'completed' && (
                       <Button variant="destructive" size="sm" onClick={() => cancelOfferedRide(route.id)} className="w-full font-headline">
@@ -227,11 +227,11 @@ export default function MyRidesPage() {
                   >
                     <div className="w-full space-y-2 mt-2">
                         {booking.status === 'confirmed' && ( // Only show track if booking is confirmed
-                           <Link href={`/my-rides/${booking.id}/track`} legacyBehavior passHref>
-                             <Button as="a" variant="outline" size="sm" className="w-full font-headline">
-                               <MapPin className="mr-2 h-4 w-4"/> Track Ride
-                             </Button>
-                           </Link>
+                           <Button asChild variant="outline" size="sm" className="w-full font-headline">
+                               <Link href={`/my-rides/${booking.id}/track`}>
+                                   <MapPin className="mr-2 h-4 w-4"/> Track Ride
+                               </Link>
+                           </Button>
                         )}
                         {(booking.status !== 'cancelled' && booking.status !== 'completed') && (
                            <Button variant="destructive" size="sm" onClick={() => cancelBooking(booking.id)} className="w-full font-headline">
