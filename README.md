@@ -5,6 +5,7 @@
     src="https://cdn.firebasestudio.dev/btn/open_bright_32.svg">
 </a>
 
+https://studio-two-steel.vercel.app/
 
 This is a NextJS starter in Firebase Studio.
 
